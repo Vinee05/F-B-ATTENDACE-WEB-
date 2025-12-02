@@ -233,6 +233,14 @@ export default function App() {
       target: 'students',
       createdAt: '2025-11-22',
       createdBy: 'admin'
+    }],
+    admins: [{
+      id: 'admin1',
+      name: 'System Administrator',
+      email: 'admin@example.com',
+      employeeId: 'ADM001',
+      createdAt: '2025-01-01',
+      status: 'active'
     }]
   });
   const handleLogin = (email, password) => {
@@ -337,6 +345,8 @@ export default function App() {
       onNavigate: navigate,
       onLogout: handleLogout
     }), currentPage === 'settings' && /*#__PURE__*/React.createElement(Settings, {
+      appState: appState,
+      setAppState: setAppState,
       user: user,
       onNavigate: navigate,
       onLogout: handleLogout
