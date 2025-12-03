@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout } from '../Layout';
-import { LayoutDashboard, FileText, ArrowLeft, Save, CheckCircle } from 'lucide-react';
+import { LayoutDashboard, ArrowLeft, Save, CheckCircle } from 'lucide-react';
 export function TakeAttendance({
   appState,
   setAppState,
@@ -19,12 +19,6 @@ export function TakeAttendance({
     id: 'dashboard',
     label: 'Dashboard',
     icon: /*#__PURE__*/React.createElement(LayoutDashboard, {
-      size: 20
-    })
-  }, {
-    id: 'leave',
-    label: 'Apply Leave',
-    icon: /*#__PURE__*/React.createElement(FileText, {
       size: 20
     })
   }];

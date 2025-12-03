@@ -29,8 +29,8 @@ app.use(express.json());
 // Minimal in-memory data (subset needed for these endpoints)
 let appState = {
   courses: [
-    { id: '1', name: 'Computer Science Fundamentals', code: 'CS101', description: 'Introduction to programming', instructorId: 'inst1' },
-    { id: '2', name: 'Data Structures & Algorithms', code: 'CS201', description: 'Advanced data structures', instructorId: 'inst2' }
+    { id: '1', name: 'Computer Science Fundamentals', code: 'CS101', description: 'Introduction to programming', instructorIds: ['inst1'] },
+    { id: '2', name: 'Data Structures & Algorithms', code: 'CS201', description: 'Advanced data structures', instructorIds: ['inst2'] }
   ],
   batches: [
     { id: 'b1', courseId: '1', name: 'Batch A1', startDate: '2025-01-15', endDate: '2025-06-15' },

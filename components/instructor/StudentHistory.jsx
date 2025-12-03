@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout } from '../Layout';
-import { LayoutDashboard, FileText, ArrowLeft, Calendar } from 'lucide-react';
+import { LayoutDashboard, ArrowLeft, Calendar } from 'lucide-react';
 export function StudentHistory({
   appState,
   user,
@@ -17,12 +17,6 @@ export function StudentHistory({
     id: 'dashboard',
     label: 'Dashboard',
     icon: /*#__PURE__*/React.createElement(LayoutDashboard, {
-      size: 20
-    })
-  }, {
-    id: 'leave',
-    label: 'Apply Leave',
-    icon: /*#__PURE__*/React.createElement(FileText, {
       size: 20
     })
   }];

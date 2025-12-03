@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout } from '../Layout';
-import { LayoutDashboard, FileText, ArrowLeft, UserCheck, Calendar, Users } from 'lucide-react';
+import { LayoutDashboard, ArrowLeft, UserCheck, Calendar, Users } from 'lucide-react';
 export function CoursePage({
   appState,
   user,
@@ -13,12 +13,6 @@ export function CoursePage({
     id: 'dashboard',
     label: 'Dashboard',
     icon: /*#__PURE__*/React.createElement(LayoutDashboard, {
-      size: 20
-    })
-  }, {
-    id: 'leave',
-    label: 'Apply Leave',
-    icon: /*#__PURE__*/React.createElement(FileText, {
       size: 20
     })
   }];

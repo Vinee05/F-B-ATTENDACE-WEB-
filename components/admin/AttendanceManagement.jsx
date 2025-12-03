@@ -11,7 +11,8 @@ export function AttendanceManagement({
   const [filters, setFilters] = useState({
     courseId: '',
     batchId: '',
-    date: '',
+    startDate: '',
+    endDate: '',
     studentId: ''
   });
   const [editingRecordId, setEditingRecordId] = useState(null);
@@ -80,7 +81,8 @@ export function AttendanceManagement({
   const filteredAttendance = appState.attendance.filter(record => {
     if (filters.courseId && record.courseId !== filters.courseId) return false;
     if (filters.batchId && record.batchId !== filters.batchId) return false;
-    if (filters.date && record.date !== filters.date) return false;
+    if (filters.startDate && record.date < filters.startDate) return false;
+    if (filters.endDate && record.date > filters.endDate) return false;
     if (filters.studentId && record.studentId !== filters.studentId) return false;
     return true;
   });
@@ -121,7 +123,7 @@ export function AttendanceManagement({
   }), /*#__PURE__*/React.createElement("h3", {
     className: "text-gray-900"
   }, "Filters")), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 md:grid-cols-4 gap-4"
+    className: "grid grid-cols-1 md:grid-cols-5 gap-4"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-gray-700 mb-2"
   }, "Course"), /*#__PURE__*/React.createElement("select", {
@@ -154,12 +156,22 @@ export function AttendanceManagement({
     value: batch.id
   }, batch.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-gray-700 mb-2"
-  }, "Date"), /*#__PURE__*/React.createElement("input", {
+  }, "From Date"), /*#__PURE__*/React.createElement("input", {
     type: "date",
-    value: filters.date,
+    value: filters.startDate,
     onChange: e => setFilters({
       ...filters,
-      date: e.target.value
+      startDate: e.target.value
+    }),
+    className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-gray-700 mb-2"
+  }, "To Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: filters.endDate,
+    onChange: e => setFilters({
+      ...filters,
+      endDate: e.target.value
     }),
     className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
@@ -180,7 +192,8 @@ export function AttendanceManagement({
     onClick: () => setFilters({
       courseId: '',
       batchId: '',
-      date: '',
+      startDate: '',
+      endDate: '',
       studentId: ''
     }),
     className: "mt-4 text-indigo-600 hover:text-indigo-700"

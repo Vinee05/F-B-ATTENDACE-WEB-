@@ -14,7 +14,6 @@ import { InstructorDashboard } from './components/instructor/InstructorDashboard
 import { CoursePage } from './components/instructor/CoursePage';
 import { TakeAttendance } from './components/instructor/TakeAttendance';
 import { StudentHistory } from './components/instructor/StudentHistory';
-import { InstructorLeave } from './components/instructor/InstructorLeave';
 import { StudentDashboard } from './components/student/StudentDashboard';
 import { StudentAttendance } from './components/student/StudentAttendance';
 import { StudentLeave } from './components/student/StudentLeave';
@@ -31,29 +30,29 @@ export default function App() {
       name: 'Computer Science Fundamentals',
       code: 'CS101',
       description: 'Introduction to programming',
-      instructorId: 'inst1',
-      instructorName: 'Dr. Sarah Johnson'
+      instructorIds: ['inst1'],
+      instructorNames: ['Dr. Sarah Johnson']
     }, {
       id: '2',
       name: 'Data Structures & Algorithms',
       code: 'CS201',
       description: 'Advanced data structures',
-      instructorId: 'inst2',
-      instructorName: 'Prof. Michael Chen'
+      instructorIds: ['inst2'],
+      instructorNames: ['Prof. Michael Chen']
     }, {
       id: '3',
       name: 'Web Development',
       code: 'CS301',
       description: 'Full stack web development',
-      instructorId: 'inst1',
-      instructorName: 'Dr. Sarah Johnson'
+      instructorIds: ['inst1'],
+      instructorNames: ['Dr. Sarah Johnson']
     }, {
       id: '4',
       name: 'Database Systems',
       code: 'CS202',
       description: 'Relational and NoSQL databases',
-      instructorId: 'inst3',
-      instructorName: 'Dr. Emily Brown'
+      instructorIds: ['inst3'],
+      instructorNames: ['Dr. Emily Brown']
     }],
     batches: [{
       id: 'b1',
@@ -377,12 +376,6 @@ export default function App() {
       appState: appState,
       user: user,
       studentId: selectedStudentId,
-      onNavigate: navigate,
-      onLogout: handleLogout
-    }), currentPage === 'leave' && /*#__PURE__*/React.createElement(InstructorLeave, {
-      appState: appState,
-      setAppState: setAppState,
-      user: user,
       onNavigate: navigate,
       onLogout: handleLogout
     }));
