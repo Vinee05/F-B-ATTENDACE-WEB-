@@ -170,6 +170,87 @@ app.delete('/api/instructors/:id', (req, res) => {
   res.status(404).json({ error: 'not found' });
 });
 
+// --- Bulk Imports ---
+app.post('/api/students/bulk', (req, res) => {
+  const { students } = req.body;
+  if (!Array.isArray(students)) return res.status(400).json({ error: 'students must be an array' });
+  
+  const imported = [];
+  const errors = [];
+  
+  students.forEach((s, idx) => {
+    if (!s.name || !s.email || !s.rollNo) {
+      errors.push({ row: idx, message: 'name, email, rollNo are required' });
+      return;
+    }
+    const newStudent = { id: genId('s'), ...s };
+    appState.students.push(newStudent);
+    imported.push(newStudent);
+  });
+  
+  res.status(201).json({ imported, errors, total: students.length });
+});
+
+app.post('/api/courses/bulk', (req, res) => {
+  const { courses } = req.body;
+  if (!Array.isArray(courses)) return res.status(400).json({ error: 'courses must be an array' });
+  
+  const imported = [];
+  const errors = [];
+  
+  courses.forEach((c, idx) => {
+    if (!c.code || !c.name) {
+      errors.push({ row: idx, message: 'code and name are required' });
+      return;
+    }
+    const newCourse = { id: genId('course'), ...c };
+    appState.courses.push(newCourse);
+    imported.push(newCourse);
+  });
+  
+  res.status(201).json({ imported, errors, total: courses.length });
+});
+
+app.post('/api/batches/bulk', (req, res) => {
+  const { batches } = req.body;
+  if (!Array.isArray(batches)) return res.status(400).json({ error: 'batches must be an array' });
+  
+  const imported = [];
+  const errors = [];
+  
+  batches.forEach((b, idx) => {
+    if (!b.courseId || !b.name) {
+      errors.push({ row: idx, message: 'courseId and name are required' });
+      return;
+    }
+    const newBatch = { id: genId('b'), ...b };
+    appState.batches.push(newBatch);
+    imported.push(newBatch);
+  });
+  
+  res.status(201).json({ imported, errors, total: batches.length });
+});
+
+app.post('/api/instructors/bulk', (req, res) => {
+  const { instructors } = req.body;
+  if (!Array.isArray(instructors)) return res.status(400).json({ error: 'instructors must be an array' });
+  
+  const imported = [];
+  const errors = [];
+  
+  instructors.forEach((i, idx) => {
+    if (!i.name || !i.email || !i.employeeId) {
+      errors.push({ row: idx, message: 'name, email, employeeId are required' });
+      return;
+    }
+    const newInstructor = { id: genId('inst'), ...i };
+    appState.instructors.push(newInstructor);
+    imported.push(newInstructor);
+  });
+  
+  res.status(201).json({ imported, errors, total: instructors.length });
+});
+
 // --- Admins ---
 app.get('/api/admins', (req, res) => res.json(appState.admins));
 app.post('/api/admins', (req, res) => {

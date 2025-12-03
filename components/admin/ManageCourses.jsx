@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Layout } from '../Layout';
 import { LayoutDashboard, BookOpen, Users, UserCheck, Calendar, FileText, Bell, BarChart3, Settings, GraduationCap, Plus, Edit, Trash2, X } from 'lucide-react';
 import { MultiDayPicker } from '../ui/multi-day-picker';
+import { parseCSV } from './csvUtils';
 
 export function ManageCourses({
   appState,
@@ -36,6 +37,8 @@ export function ManageCourses({
     { id: 'settings', label: 'Settings', icon: <Settings size={20} /> }
   ];
 
+  const fileRef = useRef();
+
   const handleAdd = () => {
     setFormData({
       name: '',
@@ -46,6 +49,51 @@ export function ManageCourses({
     });
     setEditingCourse(null);
     setShowAddModal(true);
+  };
+
+  const handleImportClick = () => {
+    fileRef.current?.click();
+  };
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const rows = parseCSV(evt.target.result);
+        const courses = rows.map(r => ({
+          code: r.code || r.courseCode || '',
+          name: r.name || r.courseName || '',
+          description: r.description || ''
+        }));
+        
+        const res = await fetch('/api/courses/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ courses })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Import failed: ${err.error}`);
+          return;
+        }
+        
+        const result = await res.json();
+        if (result.imported && result.imported.length > 0) {
+          setAppState(prev => ({ ...prev, courses: [...prev.courses, ...result.imported] }));
+          alert(`Successfully imported ${result.imported.length} courses${result.errors.length > 0 ? `. ${result.errors.length} rows had errors.` : '.'}`);  
+        } else {
+          alert(`Import completed with errors.\n${result.errors.map(e => `Row ${e.row}: ${e.message}`).join('\n')}`);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Failed to import CSV: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const handleEdit = (course) => {
@@ -126,13 +174,17 @@ export function ManageCourses({
             <h1 className="text-gray-900">Manage Courses</h1>
             <p className="text-gray-600 mt-1">Create and manage all courses</p>
           </div>
-          <button
-            onClick={handleAdd}
-            className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            <Plus size={20} />
-            <span>Add New Course</span>
-          </button>
+          <div className="flex">
+            <button
+              onClick={handleAdd}
+              className="inline-flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors mr-2"
+            >
+              <Plus size={20} />
+              <span>Add New Course</span>
+            </button>
+            <button onClick={handleImportClick} className="inline-flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">Import CSV</button>
+            <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} style={{ display: 'none' }} />
+          </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
