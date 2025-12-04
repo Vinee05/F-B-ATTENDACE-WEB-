@@ -1,6 +1,0 @@
-rollNo,name,email,parentsEmail,batchName
-STU101,John Doe,john@example.com,john.parent@example.com,Batch A1
-STU102,Jane Smith,jane@example.com,jane.parent@example.com,Batch A1
-STU103,Bob Johnson,bob@example.com,bob.parent@example.com,Batch A2
-STU104,Alice Brown,alice@example.com,alice.parent@example.com,Batch B1
-STU105,Charlie Davis,charlie@example.com,charlie.parent@example.com,Batch C1

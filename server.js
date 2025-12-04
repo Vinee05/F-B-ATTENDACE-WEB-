@@ -8,54 +8,8 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-// In-memory data seeded from App.jsx
-let appState = {
-  courses: [
-    { id: '1', name: 'Computer Science Fundamentals', code: 'CS101', description: 'Introduction to programming', instructorId: 'inst1', instructorName: 'Dr. Sarah Johnson' },
-    { id: '2', name: 'Data Structures & Algorithms', code: 'CS201', description: 'Advanced data structures', instructorId: 'inst2', instructorName: 'Prof. Michael Chen' },
-    { id: '3', name: 'Web Development', code: 'CS301', description: 'Full stack web development', instructorId: 'inst1', instructorName: 'Dr. Sarah Johnson' },
-    { id: '4', name: 'Database Systems', code: 'CS202', description: 'Relational and NoSQL databases', instructorId: 'inst3', instructorName: 'Dr. Emily Brown' }
-  ],
-  batches: [
-    { id: 'b1', courseId: '1', name: 'Batch A1', startDate: '2025-01-15', endDate: '2025-06-15', year: '2025' },
-    { id: 'b2', courseId: '1', name: 'Batch A2', startDate: '2025-01-15', endDate: '2025-06-15', year: '2025' },
-    { id: 'b3', courseId: '2', name: 'Batch B1', startDate: '2025-02-01', endDate: '2025-07-01', year: '2025' },
-    { id: 'b4', courseId: '3', name: 'Batch C1', startDate: '2025-01-20', endDate: '2025-05-20', year: '2025' }
-  ],
-  students: [
-    { id: 's1', name: 'Alice Williams', email: 'alice@example.com', rollNo: 'STU001', batchId: 'b1' },
-    { id: 's2', name: 'Bob Martinez', email: 'bob@example.com', rollNo: 'STU002', batchId: 'b1' },
-    { id: 's3', name: 'Carol Davis', email: 'carol@example.com', rollNo: 'STU003', batchId: 'b1' },
-    { id: 's4', name: 'David Lee', email: 'david@example.com', rollNo: 'STU004', batchId: 'b2' },
-    { id: 's5', name: 'Emma Wilson', email: 'emma@example.com', rollNo: 'STU005', batchId: 'b3' },
-    { id: 's6', name: 'Frank Garcia', email: 'frank@example.com', rollNo: 'STU006', batchId: 'b3' }
-  ],
-  instructors: [
-    { id: 'inst1', name: 'Dr. Sarah Johnson', email: 'sarah@example.com', employeeId: 'EMP001' },
-    { id: 'inst2', name: 'Prof. Michael Chen', email: 'michael@example.com', employeeId: 'EMP002' },
-    { id: 'inst3', name: 'Dr. Emily Brown', email: 'emily@example.com', employeeId: 'EMP003' }
-  ],
-  attendance: [
-    { id: 'a1', studentId: 's1', courseId: '1', batchId: 'b1', date: '2025-11-25', status: 'present', takenBy: 'inst1' },
-    { id: 'a2', studentId: 's2', courseId: '1', batchId: 'b1', date: '2025-11-25', status: 'present', takenBy: 'inst1' },
-    { id: 'a3', studentId: 's3', courseId: '1', batchId: 'b1', date: '2025-11-25', status: 'absent', takenBy: 'inst1' },
-    { id: 'a4', studentId: 's1', courseId: '1', batchId: 'b1', date: '2025-11-26', status: 'present', takenBy: 'inst1' },
-    { id: 'a5', studentId: 's2', courseId: '1', batchId: 'b1', date: '2025-11-26', status: 'absent', takenBy: 'inst1' },
-    { id: 'a6', studentId: 's3', courseId: '1', batchId: 'b1', date: '2025-11-26', status: 'excused', takenBy: 'inst1' }
-  ],
-  leaveRequests: [
-    { id: 'l1', userId: 's1', userName: 'Alice Williams', userRole: 'student', startDate: '2025-11-28', endDate: '2025-11-29', reason: 'Medical emergency', status: 'pending', appliedDate: '2025-11-27', document: 'medical-cert.pdf' },
-    { id: 'l2', userId: 'inst2', userName: 'Prof. Michael Chen', userRole: 'instructor', startDate: '2025-12-05', endDate: '2025-12-07', reason: 'Conference attendance', status: 'approved', appliedDate: '2025-11-20', document: 'conference-invite.pdf' },
-    { id: 'l3', userId: 's5', userName: 'Emma Wilson', userRole: 'student', startDate: '2025-11-30', endDate: '2025-11-30', reason: 'Family function', status: 'rejected', appliedDate: '2025-11-28' }
-  ],
-  notifications: [
-    { id: 'n1', title: 'Holiday Notice', message: 'Campus will be closed on December 25th for Christmas', target: 'all', createdAt: '2025-11-20', createdBy: 'admin' },
-    { id: 'n2', title: 'Exam Schedule', message: 'Final exams will begin from January 10th', target: 'students', createdAt: '2025-11-22', createdBy: 'admin' }
-  ],
-  admins: [
-    { id: 'admin1', name: 'System Administrator', email: 'admin@example.com', employeeId: 'ADM001', createdAt: '2025-01-01', status: 'active' }
-  ]
-};
+// In-memory data now extracted to a separate module so it can be re-used by the seeder
+const appState = require('./server/appState');
 
 // Utility helpers
 function findById(arr, id) {
@@ -71,248 +25,421 @@ function genId(prefix) {
   return `${prefix}${Date.now()}`;
 }
 
+// Initialize SQLite (Sequelize) - don't block server startup
+const { init, sequelize, Student, Course, Batch, Instructor, Attendance, CourseInstructor, Enrollment, Admin, LeaveRequest, Notification } = require('./server/sqlite');
+let dbReady = false;
+init().then(() => { dbReady = true; console.log('SQLite DB initialized'); }).catch(err => console.error('DB init error', err));
+
 // --- Authentication ---
-app.post('/api/login', (req, res) => {
-  const { email, password } = req.body;
+app.post('/api/login', async (req, res) => {
+  const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'email required' });
-
-  // Mock: determine role from email
-  let role = 'student';
-  let id = '';
-  let name = 'User';
-
-  if (email.includes('admin')) {
-    role = 'admin';
-    id = 'admin1';
-    name = 'Admin User';
-  } else if (email.includes('sarah') || email.includes('michael') || email.includes('emily')) {
-    role = 'instructor';
-    const instructor = appState.instructors.find(i => i.email === email);
-    if (instructor) { id = instructor.id; name = instructor.name; }
-  } else {
-    role = 'student';
-    const student = appState.students.find(s => s.email === email);
-    if (student) { id = student.id; name = student.name; }
+  try {
+    // Check admins
+    const admin = await Admin.findOne({ where: { email } });
+    if (admin) return res.json({ user: { id: admin.id, name: admin.name, email, role: 'admin' } });
+    const instructor = await Instructor.findOne({ where: { email } });
+    if (instructor) return res.json({ user: { id: instructor.id, name: instructor.name, email, role: 'instructor' } });
+    const student = await Student.findOne({ where: { email } });
+    if (student) return res.json({ user: { id: student.id, name: student.name, email, role: 'student' } });
+    return res.json({ user: { id: '', name: 'User', email, role: 'student' } });
+  } catch (err) {
+    console.error('login error', err);
+    res.status(500).json({ error: 'internal' });
   }
-
-  return res.json({ user: { id, name, email, role } });
 });
 
 // --- Courses ---
-app.get('/api/courses', (req, res) => res.json(appState.courses));
-app.post('/api/courses', (req, res) => {
-  const course = { id: genId('course'), ...req.body };
-  appState.courses.push(course);
-  res.status(201).json(course);
+app.get('/api/courses', async (req, res) => {
+  try {
+    const courses = await Course.findAll();
+    res.json(courses);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.put('/api/courses/:id', (req, res) => {
-  const course = findById(appState.courses, req.params.id);
-  if (!course) return res.status(404).json({ error: 'not found' });
-  Object.assign(course, req.body);
-  res.json(course);
+
+app.post('/api/courses', async (req, res) => {
+  try {
+    const id = genId('course');
+    const created = await Course.create({ id, ...req.body });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.delete('/api/courses/:id', (req, res) => {
-  if (removeById(appState.courses, req.params.id)) return res.json({ ok: true });
-  res.status(404).json({ error: 'not found' });
+
+app.put('/api/courses/:id', async (req, res) => {
+  try {
+    const c = await Course.findByPk(req.params.id);
+    if (!c) return res.status(404).json({ error: 'not found' });
+    await c.update(req.body);
+    res.json(c);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.delete('/api/courses/:id', async (req, res) => {
+  try {
+    const c = await Course.findByPk(req.params.id);
+    if (!c) return res.status(404).json({ error: 'not found' });
+    await c.destroy();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
 // --- Batches ---
-app.get('/api/batches', (req, res) => res.json(appState.batches));
-app.post('/api/batches', (req, res) => {
-  const b = { id: genId('b'), ...req.body };
-  appState.batches.push(b);
-  res.status(201).json(b);
+app.get('/api/batches', async (req, res) => {
+  try {
+    const batches = await Batch.findAll();
+    res.json(batches);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.put('/api/batches/:id', (req, res) => {
-  const b = findById(appState.batches, req.params.id);
-  if (!b) return res.status(404).json({ error: 'not found' });
-  Object.assign(b, req.body);
-  res.json(b);
+
+app.post('/api/batches', async (req, res) => {
+  try {
+    const id = genId('b');
+    const created = await Batch.create({ id, ...req.body });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.delete('/api/batches/:id', (req, res) => {
-  if (removeById(appState.batches, req.params.id)) return res.json({ ok: true });
-  res.status(404).json({ error: 'not found' });
+
+app.put('/api/batches/:id', async (req, res) => {
+  try {
+    const b = await Batch.findByPk(req.params.id);
+    if (!b) return res.status(404).json({ error: 'not found' });
+    await b.update(req.body);
+    res.json(b);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.delete('/api/batches/:id', async (req, res) => {
+  try {
+    const b = await Batch.findByPk(req.params.id);
+    if (!b) return res.status(404).json({ error: 'not found' });
+    await b.destroy();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
 // --- Students ---
-app.get('/api/students', (req, res) => res.json(appState.students));
-app.post('/api/students', (req, res) => {
-  const s = { id: genId('s'), ...req.body };
-  appState.students.push(s);
-  res.status(201).json(s);
+app.get('/api/students', async (req, res) => {
+  try {
+    const students = await Student.findAll();
+    res.json(students);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.put('/api/students/:id', (req, res) => {
-  const s = findById(appState.students, req.params.id);
-  if (!s) return res.status(404).json({ error: 'not found' });
-  Object.assign(s, req.body);
-  res.json(s);
+
+app.post('/api/students', async (req, res) => {
+  try {
+    const payload = req.body;
+    const id = genId('s');
+    const created = await Student.create({ id, ...payload });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.delete('/api/students/:id', (req, res) => {
-  if (removeById(appState.students, req.params.id)) return res.json({ ok: true });
-  res.status(404).json({ error: 'not found' });
+
+app.put('/api/students/:id', async (req, res) => {
+  try {
+    const s = await Student.findByPk(req.params.id);
+    if (!s) return res.status(404).json({ error: 'not found' });
+    await s.update(req.body);
+    res.json(s);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.delete('/api/students/:id', async (req, res) => {
+  try {
+    const s = await Student.findByPk(req.params.id);
+    if (!s) return res.status(404).json({ error: 'not found' });
+    await s.destroy();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
 // --- Instructors ---
-app.get('/api/instructors', (req, res) => res.json(appState.instructors));
-app.post('/api/instructors', (req, res) => {
-  const i = { id: genId('inst'), ...req.body };
-  appState.instructors.push(i);
-  res.status(201).json(i);
+app.get('/api/instructors', async (req, res) => {
+  try {
+    const instructors = await Instructor.findAll();
+    res.json(instructors);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.put('/api/instructors/:id', (req, res) => {
-  const i = findById(appState.instructors, req.params.id);
-  if (!i) return res.status(404).json({ error: 'not found' });
-  Object.assign(i, req.body);
-  res.json(i);
+
+app.post('/api/instructors', async (req, res) => {
+  try {
+    const id = genId('inst');
+    const created = await Instructor.create({ id, ...req.body });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.delete('/api/instructors/:id', (req, res) => {
-  if (removeById(appState.instructors, req.params.id)) return res.json({ ok: true });
-  res.status(404).json({ error: 'not found' });
+
+app.put('/api/instructors/:id', async (req, res) => {
+  try {
+    const i = await Instructor.findByPk(req.params.id);
+    if (!i) return res.status(404).json({ error: 'not found' });
+    await i.update(req.body);
+    res.json(i);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.delete('/api/instructors/:id', async (req, res) => {
+  try {
+    const i = await Instructor.findByPk(req.params.id);
+    if (!i) return res.status(404).json({ error: 'not found' });
+    await i.destroy();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
 // --- Bulk Imports ---
-app.post('/api/students/bulk', (req, res) => {
+app.post('/api/students/bulk', async (req, res) => {
   const { students } = req.body;
   if (!Array.isArray(students)) return res.status(400).json({ error: 'students must be an array' });
-  
   const imported = [];
   const errors = [];
-  
-  students.forEach((s, idx) => {
-    if (!s.name || !s.email || !s.rollNo) {
-      errors.push({ row: idx, message: 'name, email, rollNo are required' });
-      return;
-    }
-    const newStudent = { id: genId('s'), ...s };
-    appState.students.push(newStudent);
-    imported.push(newStudent);
-  });
-  
-  res.status(201).json({ imported, errors, total: students.length });
+  try {
+    await sequelize.transaction(async (t) => {
+      for (let idx = 0; idx < students.length; idx++) {
+        const s = students[idx];
+        if (!s.name || !s.email || !s.rollNo) {
+          errors.push({ row: idx, message: 'name, email, rollNo are required' });
+          continue;
+        }
+        const payload = { id: s.id || genId('s'), name: s.name, email: s.email, rollNo: s.rollNo, parentsEmail: s.parentsEmail || null };
+        const [record] = await Student.findOrCreate({ where: { id: payload.id }, defaults: payload, transaction: t });
+        imported.push(record);
+        if (s.batchId) {
+          const en = { id: `en-${record.id}-${s.batchId}`, studentId: record.id, batchId: s.batchId };
+          await Enrollment.findOrCreate({ where: { id: en.id }, defaults: en, transaction: t });
+        }
+      }
+    });
+    res.status(201).json({ imported, errors, total: students.length });
+  } catch (err) {
+    console.error('students bulk error', err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
-app.post('/api/courses/bulk', (req, res) => {
+app.post('/api/courses/bulk', async (req, res) => {
   const { courses } = req.body;
   if (!Array.isArray(courses)) return res.status(400).json({ error: 'courses must be an array' });
-  
   const imported = [];
   const errors = [];
-  
-  courses.forEach((c, idx) => {
-    if (!c.code || !c.name) {
-      errors.push({ row: idx, message: 'code and name are required' });
-      return;
-    }
-    const newCourse = { id: genId('course'), ...c };
-    appState.courses.push(newCourse);
-    imported.push(newCourse);
-  });
-  
-  res.status(201).json({ imported, errors, total: courses.length });
+  try {
+    await sequelize.transaction(async (t) => {
+      for (let idx = 0; idx < courses.length; idx++) {
+        const c = courses[idx];
+        if (!c.code || !c.name) { errors.push({ row: idx, message: 'code and name are required' }); continue; }
+        const payload = { id: c.id || genId('course'), code: c.code, name: c.name, description: c.description || '' };
+        const [record] = await Course.findOrCreate({ where: { id: payload.id }, defaults: payload, transaction: t });
+        imported.push(record);
+        if (c.instructorId) {
+          const ci = { id: `ci-${record.id}-${c.instructorId}`, courseId: record.id, instructorId: c.instructorId };
+          await CourseInstructor.findOrCreate({ where: { id: ci.id }, defaults: ci, transaction: t });
+        }
+      }
+    });
+    res.status(201).json({ imported, errors, total: courses.length });
+  } catch (err) {
+    console.error('courses bulk error', err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
-app.post('/api/batches/bulk', (req, res) => {
+app.post('/api/batches/bulk', async (req, res) => {
   const { batches } = req.body;
   if (!Array.isArray(batches)) return res.status(400).json({ error: 'batches must be an array' });
-  
   const imported = [];
   const errors = [];
-  
-  batches.forEach((b, idx) => {
-    if (!b.courseId || !b.name) {
-      errors.push({ row: idx, message: 'courseId and name are required' });
-      return;
-    }
-    const newBatch = { id: genId('b'), ...b };
-    appState.batches.push(newBatch);
-    imported.push(newBatch);
-  });
-  
-  res.status(201).json({ imported, errors, total: batches.length });
+  try {
+    await sequelize.transaction(async (t) => {
+      for (let idx = 0; idx < batches.length; idx++) {
+        const b = batches[idx];
+        if (!b.courseId || !b.name) { errors.push({ row: idx, message: 'courseId and name are required' }); continue; }
+        const payload = { id: b.id || genId('b'), courseId: b.courseId, name: b.name, startDate: b.startDate || null, endDate: b.endDate || null, year: b.year || null };
+        const [record] = await Batch.findOrCreate({ where: { id: payload.id }, defaults: payload, transaction: t });
+        imported.push(record);
+      }
+    });
+    res.status(201).json({ imported, errors, total: batches.length });
+  } catch (err) {
+    console.error('batches bulk error', err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
-app.post('/api/instructors/bulk', (req, res) => {
+app.post('/api/instructors/bulk', async (req, res) => {
   const { instructors } = req.body;
   if (!Array.isArray(instructors)) return res.status(400).json({ error: 'instructors must be an array' });
-  
   const imported = [];
   const errors = [];
-  
-  instructors.forEach((i, idx) => {
-    if (!i.name || !i.email || !i.employeeId) {
-      errors.push({ row: idx, message: 'name, email, employeeId are required' });
-      return;
-    }
-    const newInstructor = { id: genId('inst'), ...i };
-    appState.instructors.push(newInstructor);
-    imported.push(newInstructor);
-  });
-  
-  res.status(201).json({ imported, errors, total: instructors.length });
+  try {
+    await sequelize.transaction(async (t) => {
+      for (let idx = 0; idx < instructors.length; idx++) {
+        const i = instructors[idx];
+        if (!i.name || !i.email || !i.employeeId) { errors.push({ row: idx, message: 'name, email, employeeId are required' }); continue; }
+        const payload = { id: i.id || genId('inst'), name: i.name, email: i.email, employeeId: i.employeeId };
+        const [record] = await Instructor.findOrCreate({ where: { id: payload.id }, defaults: payload, transaction: t });
+        imported.push(record);
+      }
+    });
+    res.status(201).json({ imported, errors, total: instructors.length });
+  } catch (err) {
+    console.error('instructors bulk error', err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
 // --- Admins ---
-app.get('/api/admins', (req, res) => res.json(appState.admins));
-app.post('/api/admins', (req, res) => {
-  const a = { id: genId('admin'), ...req.body, createdAt: new Date().toISOString().split('T')[0], status: 'active' };
-  appState.admins.push(a);
-  res.status(201).json(a);
+app.get('/api/admins', async (req, res) => {
+  try {
+    const admins = await Admin.findAll();
+    res.json(admins);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
-app.delete('/api/admins/:id', (req, res) => {
-  if (removeById(appState.admins, req.params.id)) return res.json({ ok: true });
-  res.status(404).json({ error: 'not found' });
+app.post('/api/admins', async (req, res) => {
+  try {
+    const payload = { id: req.body.id || genId('admin'), name: req.body.name, email: req.body.email, employeeId: req.body.employeeId || null, createdAt: new Date().toISOString().split('T')[0], status: req.body.status || 'active' };
+    const created = await Admin.create(payload);
+    res.status(201).json(created);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
+});
+app.delete('/api/admins/:id', async (req, res) => {
+  try {
+    const a = await Admin.findByPk(req.params.id);
+    if (!a) return res.status(404).json({ error: 'not found' });
+    await a.destroy();
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
 
 // --- Attendance ---
-app.get('/api/attendance', (req, res) => {
-  // Optional filters: courseId, studentId
-  const { courseId, studentId } = req.query;
-  let list = appState.attendance;
-  if (courseId) list = list.filter(a => a.courseId === courseId);
-  if (studentId) list = list.filter(a => a.studentId === studentId);
-  res.json(list);
+app.get('/api/attendance', async (req, res) => {
+  try {
+    const { batchId, date } = req.query;
+    const where = {};
+    if (batchId) where.batchId = batchId;
+    if (date) where.date = date;
+    const rows = await Attendance.findAll({ where });
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
-app.post('/api/attendance', (req, res) => {
-  const a = { id: genId('a'), ...req.body };
-  appState.attendance.push(a);
-  res.status(201).json(a);
+
+app.post('/api/attendance', async (req, res) => {
+  try {
+    const id = genId('a');
+    const created = await Attendance.create({ id, ...req.body });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
 // --- Leave Requests ---
-app.get('/api/leaverequests', (req, res) => res.json(appState.leaveRequests));
-app.post('/api/leaverequests', (req, res) => {
-  const l = { id: genId('l'), ...req.body };
-  appState.leaveRequests.push(l);
-  res.status(201).json(l);
+app.get('/api/leaverequests', async (req, res) => {
+  try {
+    const list = await LeaveRequest.findAll();
+    res.json(list);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
-app.put('/api/leaverequests/:id', (req, res) => {
-  const l = findById(appState.leaveRequests, req.params.id);
-  if (!l) return res.status(404).json({ error: 'not found' });
-  Object.assign(l, req.body);
-  res.json(l);
+app.post('/api/leaverequests', async (req, res) => {
+  try {
+    const payload = { id: req.body.id || genId('l'), userId: req.body.userId, userName: req.body.userName, userRole: req.body.userRole, startDate: req.body.startDate, endDate: req.body.endDate, reason: req.body.reason, status: req.body.status || 'pending', appliedDate: req.body.appliedDate || new Date().toISOString().split('T')[0], document: req.body.document || null };
+    const created = await LeaveRequest.create(payload);
+    res.status(201).json(created);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
+});
+app.put('/api/leaverequests/:id', async (req, res) => {
+  try {
+    const l = await LeaveRequest.findByPk(req.params.id);
+    if (!l) return res.status(404).json({ error: 'not found' });
+    await l.update(req.body);
+    res.json(l);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
 
 // --- Notifications ---
-app.get('/api/notifications', (req, res) => res.json(appState.notifications));
-app.post('/api/notifications', (req, res) => {
-  const n = { id: genId('n'), createdAt: new Date().toISOString().split('T')[0], ...req.body };
-  appState.notifications.push(n);
-  res.status(201).json(n);
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const list = await Notification.findAll();
+    res.json(list);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
-app.delete('/api/notifications/:id', (req, res) => {
-  if (removeById(appState.notifications, req.params.id)) return res.json({ ok: true });
-  res.status(404).json({ error: 'not found' });
+app.post('/api/notifications', async (req, res) => {
+  try {
+    const payload = { id: req.body.id || genId('n'), title: req.body.title, message: req.body.message, target: req.body.target || 'all', createdAt: new Date().toISOString().split('T')[0], createdBy: req.body.createdBy || 'admin' };
+    const created = await Notification.create(payload);
+    res.status(201).json(created);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
+});
+app.delete('/api/notifications/:id', async (req, res) => {
+  try {
+    const n = await Notification.findByPk(req.params.id);
+    if (!n) return res.status(404).json({ error: 'not found' });
+    await n.destroy();
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
 
 // --- Reports ---
-app.get('/api/reports', (req, res) => {
-  const totalStudents = appState.students.length;
-  const totalInstructors = appState.instructors.length;
-  const totalCourses = appState.courses.length;
-  const totalAttendance = appState.attendance.length;
-  const totalPresent = appState.attendance.filter(a => a.status === 'present').length;
-  const attendanceRate = totalAttendance > 0 ? (totalPresent / totalAttendance * 100).toFixed(1) : '0.0';
-  res.json({ totalStudents, totalInstructors, totalCourses, totalAttendance, totalPresent, attendanceRate });
+app.get('/api/reports', async (req, res) => {
+  try {
+    const totalStudents = await Student.count();
+    const totalInstructors = await Instructor.count();
+    const totalCourses = await Course.count();
+    const totalAttendance = await Attendance.count();
+    const totalPresent = await Attendance.count({ where: { status: 'present' } });
+    const attendanceRate = totalAttendance > 0 ? ((totalPresent / totalAttendance) * 100).toFixed(1) : '0.0';
+    res.json({ totalStudents, totalInstructors, totalCourses, totalAttendance, totalPresent, attendanceRate });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
 
 // Health check
