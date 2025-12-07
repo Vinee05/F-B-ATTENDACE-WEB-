@@ -10,6 +10,24 @@ export function ManageInstructors({
   onNavigate,
   onLogout
 }) {
+  const readJsonSafe = async (res) => {
+    // Fallback parser so we do not crash when the server returns an empty or non-JSON body
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const getErrorMessage = async (res, fallback) => {
+    const data = await readJsonSafe(res);
+    if (!data) return fallback;
+    if (typeof data === 'string') return data;
+    return data.error || data.message || fallback;
+  };
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState(null);
   const [formData, setFormData] = useState({
@@ -70,14 +88,19 @@ export function ManageInstructors({
         });
 
         if (!res.ok) {
-          const err = await res.json();
-          alert(`Import failed: ${err.error}`);
+          const message = await getErrorMessage(res, 'Import failed');
+          alert(`Import failed: ${message}`);
           return;
         }
 
         const result = await res.json();
+        // Refresh instructors from API to get server-authoritative state
+        const instructorsRes = await fetch('/api/instructors');
+        if (!instructorsRes.ok) throw new Error('Failed to reload instructors after import');
+        const latestInstructors = await instructorsRes.json();
+        setAppState(prev => ({ ...prev, instructors: latestInstructors }));
+
         if (result.imported && result.imported.length > 0) {
-          setAppState(prev => ({ ...prev, instructors: [...prev.instructors, ...result.imported] }));
           alert(`Successfully imported ${result.imported.length} instructors${result.errors.length > 0 ? `. ${result.errors.length} rows had errors.` : '.'}`);
         } else {
           alert(`Import completed with errors. Check details:\n${result.errors.map(e => `Row ${e.row}: ${e.message}`).join('\n')}`);
@@ -103,30 +126,51 @@ export function ManageInstructors({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingInstructor) {
-      setAppState(prev => ({
-        ...prev,
-        instructors: prev.instructors.map(i => i.id === editingInstructor.id ? { ...i, ...formData } : i)
-      }));
-    } else {
-      const newInstructor = {
-        id: 'inst' + Date.now(),
-        ...formData
-      };
-      setAppState(prev => ({
-        ...prev,
-        instructors: [...prev.instructors, newInstructor]
-      }));
-    }
-    setShowAddModal(false);
+    (async () => {
+      try {
+        if (editingInstructor) {
+          const res = await fetch(`/api/instructors/${editingInstructor.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error(await getErrorMessage(res, 'Update failed'));
+        } else {
+          const res = await fetch('/api/instructors', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error(await getErrorMessage(res, 'Create failed'));
+        }
+
+        const instructorsRes = await fetch('/api/instructors');
+        if (!instructorsRes.ok) throw new Error('Failed to reload instructors');
+        const instructors = await instructorsRes.json();
+        setAppState(prev => ({ ...prev, instructors }));
+        setShowAddModal(false);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save instructor: ' + err.message);
+      }
+    })();
   };
 
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this instructor?')) {
-      setAppState(prev => ({
-        ...prev,
-        instructors: prev.instructors.filter(i => i.id !== id)
-      }));
+      (async () => {
+        try {
+          const res = await fetch(`/api/instructors/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error(await getErrorMessage(res, 'Delete failed'));
+          const instructorsRes = await fetch('/api/instructors');
+          if (!instructorsRes.ok) throw new Error('Failed to reload instructors');
+          const instructors = await instructorsRes.json();
+          setAppState(prev => ({ ...prev, instructors }));
+        } catch (err) {
+          console.error(err);
+          alert('Failed to delete instructor: ' + err.message);
+        }
+      })();
     }
   };
 

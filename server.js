@@ -8,8 +8,17 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-// In-memory data now extracted to a separate module so it can be re-used by the seeder
-const appState = require('./server/appState');
+// Default admin bootstrap (minimal, avoids legacy in-memory seeds)
+const DEFAULT_ADMINS = [
+  {
+    id: 'admin1',
+    name: 'System Administrator',
+    email: 'admin1@example.com',
+    employeeId: 'ADM001',
+    status: 'active',
+    createdAt: '2025-01-01'
+  }
+];
 
 // Utility helpers
 function findById(arr, id) {
@@ -28,7 +37,32 @@ function genId(prefix) {
 // Initialize SQLite (Sequelize) - don't block server startup
 const { init, sequelize, Student, Course, Batch, Instructor, Attendance, CourseInstructor, Enrollment, Admin, LeaveRequest, Notification } = require('./server/sqlite');
 let dbReady = false;
-init().then(() => { dbReady = true; console.log('SQLite DB initialized'); }).catch(err => console.error('DB init error', err));
+init()
+  .then(async () => {
+    dbReady = true;
+    console.log('SQLite DB initialized');
+    try {
+      await ensureAdminsSeeded();
+    } catch (err) {
+      console.error('Admin seed check failed', err);
+    }
+  })
+  .catch(err => console.error('DB init error', err));
+
+// Ensure default admins exist (e.g., admin@example.com) so login returns admin role
+async function ensureAdminsSeeded() {
+  for (const admin of DEFAULT_ADMINS) {
+    const payload = {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+      employeeId: admin.employeeId || null,
+      status: admin.status || 'active',
+      createdAt: admin.createdAt || new Date().toISOString().split('T')[0]
+    };
+    await Admin.findOrCreate({ where: { id: payload.id }, defaults: payload });
+  }
+}
 
 // --- Authentication ---
 app.post('/api/login', async (req, res) => {
@@ -37,12 +71,12 @@ app.post('/api/login', async (req, res) => {
   try {
     // Check admins
     const admin = await Admin.findOne({ where: { email } });
-    if (admin) return res.json({ user: { id: admin.id, name: admin.name, email, role: 'admin' } });
+    if (admin) return res.json({ id: admin.id, name: admin.name, email, role: 'admin' });
     const instructor = await Instructor.findOne({ where: { email } });
-    if (instructor) return res.json({ user: { id: instructor.id, name: instructor.name, email, role: 'instructor' } });
+    if (instructor) return res.json({ id: instructor.id, name: instructor.name, email, role: 'instructor' });
     const student = await Student.findOne({ where: { email } });
-    if (student) return res.json({ user: { id: student.id, name: student.name, email, role: 'student' } });
-    return res.json({ user: { id: '', name: 'User', email, role: 'student' } });
+    if (student) return res.json({ id: student.id, name: student.name, email, role: 'student' });
+    return res.json({ id: '', name: 'User', email, role: 'student' });
   } catch (err) {
     console.error('login error', err);
     res.status(500).json({ error: 'internal' });
@@ -459,4 +493,13 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'API route not found
 
 app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });

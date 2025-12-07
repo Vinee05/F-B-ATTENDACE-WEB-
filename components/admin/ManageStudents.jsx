@@ -60,25 +60,35 @@ export function ManageStudents({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingStudent) {
-      setAppState(prev => ({
-        ...prev,
-        students: prev.students.map(s => s.id === editingStudent.id ? {
-          ...s,
-          ...formData
-        } : s)
-      }));
-    } else {
-      const newStudent = {
-        id: `s${Date.now()}`,
-        ...formData
-      };
-      setAppState(prev => ({
-        ...prev,
-        students: [...prev.students, newStudent]
-      }));
-    }
-    setShowAddModal(false);
+    (async () => {
+      try {
+        if (editingStudent) {
+          const res = await fetch(`/api/students/${editingStudent.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error((await res.json()).error || 'Update failed');
+        } else {
+          const res = await fetch('/api/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error((await res.json()).error || 'Create failed');
+        }
+
+        // Refresh students from API
+        const studentsRes = await fetch('/api/students');
+        if (!studentsRes.ok) throw new Error('Failed to reload students');
+        const students = await studentsRes.json();
+        setAppState(prev => ({ ...prev, students }));
+        setShowAddModal(false);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save student: ' + err.message);
+      }
+    })();
   };
 
   const handleImportClick = () => {
@@ -117,8 +127,14 @@ export function ManageStudents({
         }
 
         const result = await res.json();
+
+        // Refresh students list from API to ensure server-authoritative state
+        const studentsRes = await fetch('/api/students');
+        if (!studentsRes.ok) throw new Error('Failed to reload students after import');
+        const latestStudents = await studentsRes.json();
+        setAppState(prev => ({ ...prev, students: latestStudents }));
+
         if (result.imported && result.imported.length > 0) {
-          setAppState(prev => ({ ...prev, students: [...prev.students, ...result.imported] }));
           alert(`Successfully imported ${result.imported.length} students${result.errors.length > 0 ? `. ${result.errors.length} rows had errors.` : '.'}`);
         } else {
           alert(`Import completed with errors. Check details:\n${result.errors.map(e => `Row ${e.row}: ${e.message}`).join('\n')}`);
@@ -134,10 +150,19 @@ export function ManageStudents({
 
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this student?')) {
-      setAppState(prev => ({
-        ...prev,
-        students: prev.students.filter(s => s.id !== id)
-      }));
+      (async () => {
+        try {
+          const res = await fetch(`/api/students/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error((await res.json()).error || 'Delete failed');
+          const studentsRes = await fetch('/api/students');
+          if (!studentsRes.ok) throw new Error('Failed to reload students');
+          const students = await studentsRes.json();
+          setAppState(prev => ({ ...prev, students }));
+        } catch (err) {
+          console.error(err);
+          alert('Failed to delete student: ' + err.message);
+        }
+      })();
     }
   };
 

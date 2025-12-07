@@ -81,8 +81,13 @@ export function ManageCourses({
         }
         
         const result = await res.json();
+        // Refresh courses from API to get server-authoritative state
+        const coursesRes = await fetch('/api/courses');
+        if (!coursesRes.ok) throw new Error('Failed to reload courses after import');
+        const latestCourses = await coursesRes.json();
+        setAppState(prev => ({ ...prev, courses: latestCourses }));
+
         if (result.imported && result.imported.length > 0) {
-          setAppState(prev => ({ ...prev, courses: [...prev.courses, ...result.imported] }));
           alert(`Successfully imported ${result.imported.length} courses${result.errors.length > 0 ? `. ${result.errors.length} rows had errors.` : '.'}`);  
         } else {
           alert(`Import completed with errors.\n${result.errors.map(e => `Row ${e.row}: ${e.message}`).join('\n')}`);
@@ -110,39 +115,51 @@ export function ManageCourses({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const instructorNames = formData.instructorIds.map(id => 
-      appState.instructors.find(i => i.id === id)?.name
-    ).filter(Boolean);
-    
-    if (editingCourse) {
-      setAppState(prev => ({
-        ...prev,
-        courses: prev.courses.map(c => c.id === editingCourse.id ? {
-          ...c,
-          ...formData,
-          instructorNames: instructorNames
-        } : c)
-      }));
-    } else {
-      const newCourse = {
-        id: `c${Date.now()}`,
-        ...formData,
-        instructorNames: instructorNames
-      };
-      setAppState(prev => ({
-        ...prev,
-        courses: [...prev.courses, newCourse]
-      }));
-    }
-    setShowAddModal(false);
+    (async () => {
+      try {
+        if (editingCourse) {
+          const res = await fetch(`/api/courses/${editingCourse.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error((await res.json()).error || 'Update failed');
+        } else {
+          const res = await fetch('/api/courses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error((await res.json()).error || 'Create failed');
+        }
+
+        const coursesRes = await fetch('/api/courses');
+        if (!coursesRes.ok) throw new Error('Failed to reload courses');
+        const courses = await coursesRes.json();
+        setAppState(prev => ({ ...prev, courses }));
+        setShowAddModal(false);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save course: ' + err.message);
+      }
+    })();
   };
 
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this course?')) {
-      setAppState(prev => ({
-        ...prev,
-        courses: prev.courses.filter(c => c.id !== id)
-      }));
+      (async () => {
+        try {
+          const res = await fetch(`/api/courses/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error((await res.json()).error || 'Delete failed');
+          const coursesRes = await fetch('/api/courses');
+          if (!coursesRes.ok) throw new Error('Failed to reload courses');
+          const courses = await coursesRes.json();
+          setAppState(prev => ({ ...prev, courses }));
+        } catch (err) {
+          console.error(err);
+          alert('Failed to delete course: ' + err.message);
+        }
+      })();
     }
   };
 

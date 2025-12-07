@@ -60,22 +60,34 @@ export function ManageBatches({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingBatch) {
-      setAppState(prev => ({
-        ...prev,
-        batches: prev.batches.map(b => b.id === editingBatch.id ? { ...editingBatch, ...formData } : b)
-      }));
-    } else {
-      const newBatch = {
-        id: 'b' + Date.now(),
-        ...formData
-      };
-      setAppState(prev => ({
-        ...prev,
-        batches: [...prev.batches, newBatch]
-      }));
-    }
-    setShowAddModal(false);
+    (async () => {
+      try {
+        if (editingBatch) {
+          const res = await fetch(`/api/batches/${editingBatch.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error((await res.json()).error || 'Update failed');
+        } else {
+          const res = await fetch('/api/batches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (!res.ok) throw new Error((await res.json()).error || 'Create failed');
+        }
+
+        const batchesRes = await fetch('/api/batches');
+        if (!batchesRes.ok) throw new Error('Failed to reload batches');
+        const batches = await batchesRes.json();
+        setAppState(prev => ({ ...prev, batches }));
+        setShowAddModal(false);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save batch: ' + err.message);
+      }
+    })();
   };
 
   const handleImportClick = () => {
@@ -117,8 +129,13 @@ export function ManageBatches({
         }
 
         const result = await res.json();
+        // Refresh batches from API to get server-authoritative state
+        const batchesRes = await fetch('/api/batches');
+        if (!batchesRes.ok) throw new Error('Failed to reload batches after import');
+        const latestBatches = await batchesRes.json();
+        setAppState(prev => ({ ...prev, batches: latestBatches }));
+
         if (result.imported && result.imported.length > 0) {
-          setAppState(prev => ({ ...prev, batches: [...prev.batches, ...result.imported] }));
           alert(`Successfully imported ${result.imported.length} batches${result.errors.length > 0 ? `. ${result.errors.length} rows had errors.` : '.'}`);
         } else {
           alert(`Import completed with errors. Check details:\n${result.errors.map(e => `Row ${e.row}: ${e.message}`).join('\n')}`);
@@ -134,10 +151,19 @@ export function ManageBatches({
 
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this batch?')) {
-      setAppState(prev => ({
-        ...prev,
-        batches: prev.batches.filter(b => b.id !== id)
-      }));
+      (async () => {
+        try {
+          const res = await fetch(`/api/batches/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error((await res.json()).error || 'Delete failed');
+          const batchesRes = await fetch('/api/batches');
+          if (!batchesRes.ok) throw new Error('Failed to reload batches');
+          const batches = await batchesRes.json();
+          setAppState(prev => ({ ...prev, batches }));
+        } catch (err) {
+          console.error(err);
+          alert('Failed to delete batch: ' + err.message);
+        }
+      })();
     }
   };
 
