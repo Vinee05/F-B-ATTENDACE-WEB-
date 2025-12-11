@@ -111,33 +111,33 @@ export function StudentDashboard({
       ),
 
       // Enrollment summary
-      React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" },
+      React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" },
         React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4" },
-          React.createElement("div", { className: "p-4 border rounded-lg bg-gray-50" },
-            React.createElement("p", { className: "text-xs uppercase text-gray-500 font-semibold" }, "Course"),
+          React.createElement("div", { className: "p-4 border rounded bg-gray-50" },
+            React.createElement("p", { className: "text-xs uppercase text-gray-600 font-semibold" }, "Course"),
             React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, course?.name || course?.code || 'Not Enrolled')
           ),
-          React.createElement("div", { className: "p-4 border rounded-lg bg-gray-50" },
-            React.createElement("p", { className: "text-xs uppercase text-gray-500 font-semibold" }, "Batch"),
+          React.createElement("div", { className: "p-4 border rounded bg-gray-50" },
+            React.createElement("p", { className: "text-xs uppercase text-gray-600 font-semibold" }, "Batch"),
             React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, batch?.name || batch?.id || 'Not Assigned')
           ),
-          React.createElement("div", { className: "p-4 border rounded-lg bg-gray-50" },
-            React.createElement("p", { className: "text-xs uppercase text-gray-500 font-semibold" }, "Roll Number"),
+          React.createElement("div", { className: "p-4 border rounded bg-gray-50" },
+            React.createElement("p", { className: "text-xs uppercase text-gray-600 font-semibold" }, "Roll Number"),
             React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, student?.rollNo || 'N/A')
           )
         )
       ),
       
       // Course Filter
-      React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" }, 
+      React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
         React.createElement("div", { className: "flex items-center space-x-2 mb-4" }, 
-          React.createElement(Filter, { size: 20, className: "text-gray-600" }), 
+          React.createElement(Filter, { size: 20, className: "text-gray-700" }), 
           React.createElement("h3", { className: "text-lg font-semibold text-gray-900" }, "Filter by Course")
         ), 
         React.createElement("select", {
           value: selectedCourse,
           onChange: e => setSelectedCourse(e.target.value),
-          className: "w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className: "w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
         }, 
           React.createElement("option", { value: "" }, "All Courses"), 
           studentCourses.map(c => React.createElement("option", { key: c.id, value: c.id }, c.code, " - ", c.name))
@@ -146,38 +146,38 @@ export function StudentDashboard({
       
       // Stats Cards
       React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-6" }, 
-        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" }, 
+        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
           React.createElement("div", { className: "flex items-center justify-between" }, 
             React.createElement("div", null, 
-              React.createElement("p", { className: "text-gray-600 text-sm font-medium" }, "Total Present"), 
+              React.createElement("p", { className: "text-gray-700 text-sm font-medium" }, "Total Present"), 
               React.createElement("h2", { className: "text-4xl font-bold text-green-600 mt-2" }, totalPresent)
             ), 
-            React.createElement("div", { className: "bg-green-100 p-4 rounded-lg" }, 
+            React.createElement("div", { className: "bg-green-100 p-4 rounded" }, 
               React.createElement(UserCheck, { className: "text-green-600", size: 28 })
             )
           )
         ), 
-        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" }, 
+        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
           React.createElement("div", { className: "flex items-center justify-between" }, 
             React.createElement("div", null, 
-              React.createElement("p", { className: "text-gray-600 text-sm font-medium" }, "Total Absent"), 
+              React.createElement("p", { className: "text-gray-700 text-sm font-medium" }, "Total Absent"), 
               React.createElement("h2", { className: "text-4xl font-bold text-red-600 mt-2" }, totalAbsent)
             ), 
-            React.createElement("div", { className: "bg-red-100 p-4 rounded-lg" }, 
+            React.createElement("div", { className: "bg-red-100 p-4 rounded" }, 
               React.createElement(UserCheck, { className: "text-red-600", size: 28 })
             )
           )
         ), 
-        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" }, 
+        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
           React.createElement("div", { className: "flex items-center justify-between" }, 
             React.createElement("div", null, 
-              React.createElement("p", { className: "text-gray-600 text-sm font-medium" }, "Attendance %"), 
+              React.createElement("p", { className: "text-gray-700 text-sm font-medium" }, "Attendance %"), 
               React.createElement("h2", { 
                 className: `text-4xl font-bold mt-2 ${percentage >= 75 ? 'text-green-600' : percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
               }, percentage, "%")
             ), 
-            React.createElement("div", { className: "bg-indigo-100 p-4 rounded-lg" }, 
-              React.createElement(TrendingUp, { className: "text-indigo-600", size: 28 })
+            React.createElement("div", { className: "bg-blue-100 p-4 rounded" }, 
+              React.createElement(TrendingUp, { className: "text-blue-600", size: 28 })
             )
           )
         )
@@ -186,7 +186,7 @@ export function StudentDashboard({
       // Charts Section
       React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-6" }, 
         // Pie Chart
-        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" }, 
+        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
           React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-6" }, "Attendance Distribution"),
           React.createElement("div", { style: { width: '100%', height: '350px' } },
             pieChartData.length > 0 ? 
