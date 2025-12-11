@@ -1,98 +1,132 @@
 import React from 'react';
 import { Layout } from '../Layout';
-import { LayoutDashboard, BookOpen, UserCheck, Clock } from 'lucide-react';
+import { LayoutDashboard, BookOpen, UserCheck, Calendar } from 'lucide-react';
+
 export function InstructorDashboard({
   appState,
   user,
   onNavigate,
   onLogout
 }) {
-  const sidebarItems = [{
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: /*#__PURE__*/React.createElement(LayoutDashboard, {
-      size: 20
-    })
-  }];
+  const sidebarItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: <LayoutDashboard size={20} />
+    }
+  ];
+
   const myCourses = appState.courses.filter(c => 
     c.instructorIds && Array.isArray(c.instructorIds) && c.instructorIds.includes(user.id)
   );
-  return /*#__PURE__*/React.createElement(Layout, {
-    user: user,
-    currentPage: "dashboard",
-    onNavigate: onNavigate,
-    onLogout: onLogout,
-    sidebarItems: sidebarItems
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "space-y-8"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
-    className: "text-gray-900"
-  }, "Instructor Dashboard"), /*#__PURE__*/React.createElement("p", {
-    className: "text-gray-600 mt-1"
-  }, "Welcome back, ", user.name)), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 md:grid-cols-2 gap-6"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "bg-white rounded-xl p-6 border border-gray-200"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
-    className: "text-gray-600"
-  }, "My Courses"), /*#__PURE__*/React.createElement("h2", {
-    className: "text-gray-900 mt-2"
-  }, myCourses.length)), /*#__PURE__*/React.createElement("div", {
-    className: "bg-indigo-100 p-3 rounded-lg"
-  }, /*#__PURE__*/React.createElement(BookOpen, {
-    className: "text-indigo-600",
-    size: 24
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "bg-white rounded-xl p-6 border border-gray-200"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
-    className: "text-gray-600"
-  }, "Total Batches"), /*#__PURE__*/React.createElement("h2", {
-    className: "text-gray-900 mt-2"
-  }, appState.batches.filter(b => myCourses.some(c => c.id === b.courseId)).length)), /*#__PURE__*/React.createElement("div", {
-    className: "bg-purple-100 p-3 rounded-lg"
-  }, /*#__PURE__*/React.createElement(UserCheck, {
-    className: "text-purple-600",
-    size: 24
-  })))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
-    className: "text-gray-900 mb-4"
-  }, "My Courses"), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-  }, myCourses.map(course => {
-    const courseBatches = appState.batches.filter(b => b.courseId === course.id);
-    const totalStudents = courseBatches.reduce((acc, batch) => {
-      return acc + appState.students.filter(s => s.batchId === batch.id).length;
-    }, 0);
-    return /*#__PURE__*/React.createElement("div", {
-      key: course.id,
-      onClick: () => onNavigate('course', course.id),
-      className: "bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "mb-4"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full"
-    }, course.code)), /*#__PURE__*/React.createElement("h3", {
-      className: "text-gray-900 mb-2"
-    }, course.name), /*#__PURE__*/React.createElement("p", {
-      className: "text-gray-600 mb-4"
-    }, course.description), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between pt-4 border-t border-gray-200"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center space-x-2 text-gray-600"
-    }, /*#__PURE__*/React.createElement(UserCheck, {
-      size: 18
-    }), /*#__PURE__*/React.createElement("span", null, totalStudents, " Students")), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center space-x-2 text-gray-600"
-    }, /*#__PURE__*/React.createElement(Clock, {
-      size: 18
-    }), /*#__PURE__*/React.createElement("span", null, courseBatches.length, " Batches"))));
-  }), myCourses.length === 0 && /*#__PURE__*/React.createElement("div", {
-    className: "col-span-3 text-center py-12 text-gray-500"
-  }, /*#__PURE__*/React.createElement(BookOpen, {
-    size: 48,
-    className: "mx-auto mb-4 text-gray-400"
-  }), /*#__PURE__*/React.createElement("p", null, "No courses assigned yet")))));
+
+  const myBatches = appState.batches.filter(b => 
+    myCourses.some(c => c.id === b.courseId)
+  );
+
+  const totalStudents = myBatches.reduce((acc, batch) => {
+    return acc + appState.students.filter(s => s.batchId === batch.id).length;
+  }, 0);
+
+  return (
+    <Layout
+      user={user}
+      currentPage="dashboard"
+      onNavigate={onNavigate}
+      onLogout={onLogout}
+      sidebarItems={sidebarItems}
+    >
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Instructor Dashboard</h1>
+          <p className="text-slate-600">Welcome back, {user.name}</p>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-600 text-sm font-medium">My Courses</p>
+                <h2 className="text-slate-900 text-3xl font-bold mt-2">{myCourses.length}</h2>
+              </div>
+              <div className="bg-blue-100 p-4 rounded-lg">
+                <BookOpen className="text-blue-600" size={28} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-600 text-sm font-medium">Batches</p>
+                <h2 className="text-slate-900 text-3xl font-bold mt-2">{myBatches.length}</h2>
+              </div>
+              <div className="bg-blue-100 p-4 rounded-lg">
+                <Calendar className="text-blue-600" size={28} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-600 text-sm font-medium">Total Students</p>
+                <h2 className="text-slate-900 text-3xl font-bold mt-2">{totalStudents}</h2>
+              </div>
+              <div className="bg-sky-100 p-4 rounded-lg">
+                <UserCheck className="text-sky-600" size={28} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* My Courses */}
+        <div>
+          <h2 className="text-slate-900 text-xl font-bold mb-4">My Courses</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {myCourses.map(course => {
+              const courseBatches = appState.batches.filter(b => b.courseId === course.id);
+              const courseStudents = courseBatches.reduce((acc, batch) => {
+                return acc + appState.students.filter(s => s.batchId === batch.id).length;
+              }, 0);
+              return (
+                  <button
+                    key={course.id}
+                    onClick={() => onNavigate('course', course.id)}
+                    className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold mb-2">
+                        {course.code}
+                      </span>
+                      <h3 className="text-slate-900 font-semibold group-hover:text-purple-600 transition">{course.name}</h3>
+                    </div>
+                  </div>
+                  <p className="text-slate-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-200 text-sm">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <UserCheck size={16} />
+                      <span className="font-medium">{courseStudents} Students</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Calendar size={16} />
+                      <span className="font-medium">{courseBatches.length} Batches</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+            {myCourses.length === 0 && (
+              <div className="col-span-3 text-center py-12">
+                <BookOpen size={48} className="mx-auto mb-4 text-slate-400" />
+                <p className="text-slate-500">No courses assigned yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
 }

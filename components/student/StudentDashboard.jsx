@@ -103,81 +103,65 @@ export function StudentDashboard({
     onLogout: onLogout,
     sidebarItems: sidebarItems
   }, 
-    React.createElement("div", { className: "space-y-8 p-4 md:p-8" }, 
+    React.createElement("div", { className: "space-y-6" }, 
       // Header
-      React.createElement("div", null, 
-        React.createElement("h1", { className: "text-3xl font-bold text-gray-900" }, "Student Dashboard"), 
-        React.createElement("p", { className: "text-gray-600 mt-1" }, "Welcome back, ", user.name)
+      React.createElement("div", { className: "mb-8" }, 
+        React.createElement("h1", { className: "text-3xl font-bold text-slate-900 mb-2" }, "Welcome back, ", user.name), 
+        React.createElement("p", { className: "text-slate-600" }, "Track your attendance and academic progress")
       ),
 
-      // Enrollment summary
-      React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" },
-        React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4" },
-          React.createElement("div", { className: "p-4 border rounded bg-gray-50" },
-            React.createElement("p", { className: "text-xs uppercase text-gray-600 font-semibold" }, "Course"),
-            React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, course?.name || course?.code || 'Not Enrolled')
+      // Enrollment Card
+      React.createElement("div", { className: "bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg p-6 text-white shadow-lg" },
+        React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8" },
+          React.createElement("div", null,
+            React.createElement("p", { className: "text-purple-100 text-sm font-medium uppercase tracking-wide" }, "Course"),
+            React.createElement("p", { className: "text-xl font-bold mt-2" }, course?.name || course?.code || 'Not Enrolled')
           ),
-          React.createElement("div", { className: "p-4 border rounded bg-gray-50" },
-            React.createElement("p", { className: "text-xs uppercase text-gray-600 font-semibold" }, "Batch"),
-            React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, batch?.name || batch?.id || 'Not Assigned')
+          React.createElement("div", null,
+            React.createElement("p", { className: "text-purple-100 text-sm font-medium uppercase tracking-wide" }, "Batch"),
+            React.createElement("p", { className: "text-xl font-bold mt-2" }, batch?.name || batch?.id || 'Not Assigned')
           ),
-          React.createElement("div", { className: "p-4 border rounded bg-gray-50" },
-            React.createElement("p", { className: "text-xs uppercase text-gray-600 font-semibold" }, "Roll Number"),
-            React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, student?.rollNo || 'N/A')
+          React.createElement("div", null,
+            React.createElement("p", { className: "text-purple-100 text-sm font-medium uppercase tracking-wide" }, "Roll"),
+            React.createElement("p", { className: "text-xl font-bold mt-2" }, student?.rollNo || 'N/A')
           )
         )
       ),
-      
-      // Course Filter
-      React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
-        React.createElement("div", { className: "flex items-center space-x-2 mb-4" }, 
-          React.createElement(Filter, { size: 20, className: "text-gray-700" }), 
-          React.createElement("h3", { className: "text-lg font-semibold text-gray-900" }, "Filter by Course")
-        ), 
-        React.createElement("select", {
-          value: selectedCourse,
-          onChange: e => setSelectedCourse(e.target.value),
-          className: "w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-        }, 
-          React.createElement("option", { value: "" }, "All Courses"), 
-          studentCourses.map(c => React.createElement("option", { key: c.id, value: c.id }, c.code, " - ", c.name))
-        )
-      ),
-      
+
       // Stats Cards
-      React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-6" }, 
-        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
-          React.createElement("div", { className: "flex items-center justify-between" }, 
-            React.createElement("div", null, 
-              React.createElement("p", { className: "text-gray-700 text-sm font-medium" }, "Total Present"), 
-              React.createElement("h2", { className: "text-4xl font-bold text-green-600 mt-2" }, totalPresent)
-            ), 
-            React.createElement("div", { className: "bg-green-100 p-4 rounded" }, 
-              React.createElement(UserCheck, { className: "text-green-600", size: 28 })
+      React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-6" },
+        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow border border-slate-200 hover:shadow-lg transition" },
+          React.createElement("div", { className: "flex items-center justify-between" },
+            React.createElement("div", null,
+              React.createElement("p", { className: "text-slate-600 text-sm font-medium" }, "Classes Present"),
+              React.createElement("h2", { className: "text-3xl font-bold text-emerald-500 mt-2" }, totalPresent)
+            ),
+            React.createElement("div", { className: "bg-sky-100 p-4 rounded-lg" },
+              React.createElement(UserCheck, { className: "text-sky-600", size: 32 })
             )
           )
-        ), 
-        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
-          React.createElement("div", { className: "flex items-center justify-between" }, 
-            React.createElement("div", null, 
-              React.createElement("p", { className: "text-gray-700 text-sm font-medium" }, "Total Absent"), 
-              React.createElement("h2", { className: "text-4xl font-bold text-red-600 mt-2" }, totalAbsent)
-            ), 
-            React.createElement("div", { className: "bg-red-100 p-4 rounded" }, 
-              React.createElement(UserCheck, { className: "text-red-600", size: 28 })
+        ),
+        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow border border-slate-200 hover:shadow-lg transition" },
+          React.createElement("div", { className: "flex items-center justify-between" },
+            React.createElement("div", null,
+              React.createElement("p", { className: "text-slate-600 text-sm font-medium" }, "Classes Absent"),
+              React.createElement("h2", { className: "text-3xl font-bold text-rose-600 mt-2" }, totalAbsent)
+            ),
+            React.createElement("div", { className: "bg-orange-100 p-4 rounded-lg" },
+              React.createElement(UserCheck, { className: "text-orange-600", size: 32 })
             )
           )
-        ), 
-        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
-          React.createElement("div", { className: "flex items-center justify-between" }, 
-            React.createElement("div", null, 
-              React.createElement("p", { className: "text-gray-700 text-sm font-medium" }, "Attendance %"), 
+        ),
+        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow border border-slate-200 hover:shadow-lg transition" },
+          React.createElement("div", { className: "flex items-center justify-between" },
+            React.createElement("div", null,
+              React.createElement("p", { className: "text-slate-600 text-sm font-medium" }, "Attendance %"),
               React.createElement("h2", { 
-                className: `text-4xl font-bold mt-2 ${percentage >= 75 ? 'text-green-600' : percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
+                className: `text-3xl font-bold mt-2 ${percentage >= 75 ? 'text-blue-600' : percentage >= 60 ? 'text-amber-600' : 'text-orange-600'}`
               }, percentage, "%")
-            ), 
-            React.createElement("div", { className: "bg-blue-100 p-4 rounded" }, 
-              React.createElement(TrendingUp, { className: "text-blue-600", size: 28 })
+            ),
+            React.createElement("div", { className: "bg-indigo-100 p-4 rounded-lg" },
+              React.createElement(TrendingUp, { className: "text-indigo-600", size: 32 })
             )
           )
         )
@@ -186,9 +170,9 @@ export function StudentDashboard({
       // Charts Section
       React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-6" }, 
         // Pie Chart
-        React.createElement("div", { className: "bg-white rounded p-6 shadow border border-gray-200" }, 
-          React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-6" }, "Attendance Distribution"),
-          React.createElement("div", { style: { width: '100%', height: '350px' } },
+        React.createElement("div", { className: "bg-white rounded shadow p-6 border border-gray-200" }, 
+          React.createElement("h3", { className: "text-base font-semibold text-gray-900 mb-5" }, "Attendance Distribution"),
+          React.createElement("div", { style: { width: '100%', height: '320px' } },
             pieChartData.length > 0 ? 
               React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
                 React.createElement(PieChart, null,
@@ -198,7 +182,7 @@ export function StudentDashboard({
                     cy: "50%",
                     labelLine: true,
                     label: ({ name, value }) => `${name}: ${value}`,
-                    outerRadius: 100,
+                    outerRadius: 90,
                     fill: "#8884d8",
                     dataKey: "value"
                   },
@@ -213,58 +197,58 @@ export function StudentDashboard({
                   React.createElement(Legend, null)
                 )
               )
-              : React.createElement("div", { className: "text-center py-16 text-gray-400" }, 
-                  React.createElement("p", { className: "text-lg" }, "No attendance data available")
+              : React.createElement("div", { className: "text-center py-12 text-gray-400" }, 
+                  React.createElement("p", { className: "text-sm" }, "No attendance data available")
                 )
           )
         ),
         
         // Bar Chart
-        React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" }, 
-          React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-6" }, "Attendance Trend"),
-          React.createElement("div", { style: { width: '100%', height: '350px' } },
+        React.createElement("div", { className: "bg-white rounded shadow p-6 border border-gray-200" }, 
+          React.createElement("h3", { className: "text-base font-semibold text-gray-900 mb-5" }, "Attendance Trend"),
+          React.createElement("div", { style: { width: '100%', height: '320px' } },
             attendanceByMonth.length > 0 ? 
               React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
                 React.createElement(BarChart, { data: attendanceByMonth, margin: { top: 20, right: 30, left: 0, bottom: 20 } },
                   React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "#e5e7eb" }),
-                  React.createElement(XAxis, { dataKey: "month", stroke: "#6b7280" }),
-                  React.createElement(YAxis, { stroke: "#6b7280" }),
+                  React.createElement(XAxis, { dataKey: "month", stroke: "#6b7280", fontSize: 12 }),
+                  React.createElement(YAxis, { stroke: "#6b7280", fontSize: 12 }),
                   React.createElement(Tooltip, { contentStyle: { backgroundColor: '#fff', border: '1px solid #e5e7eb' } }),
                   React.createElement(Legend, null),
-                  React.createElement(Bar, { dataKey: "present", fill: "#10b981", name: "Present", radius: [8, 8, 0, 0] }),
-                  React.createElement(Bar, { dataKey: "absent", fill: "#ef4444", name: "Absent", radius: [8, 8, 0, 0] }),
-                  React.createElement(Bar, { dataKey: "excused", fill: "#f59e0b", name: "Excused", radius: [8, 8, 0, 0] })
+                  React.createElement(Bar, { dataKey: "present", fill: "#10b981", name: "Present", radius: [6, 6, 0, 0] }),
+                  React.createElement(Bar, { dataKey: "absent", fill: "#ef4444", name: "Absent", radius: [6, 6, 0, 0] }),
+                  React.createElement(Bar, { dataKey: "excused", fill: "#f59e0b", name: "Excused", radius: [6, 6, 0, 0] })
                 )
               )
-              : React.createElement("div", { className: "text-center py-16 text-gray-400" }, 
-                  React.createElement("p", { className: "text-lg" }, "No data available for chart")
+              : React.createElement("div", { className: "text-center py-12 text-gray-400" }, 
+                  React.createElement("p", { className: "text-sm" }, "No data available")
                 )
           )
         )
       ),
       
       // My Information
-      React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" }, 
-        React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-6" }, "My Information"), 
+      React.createElement("div", { className: "bg-white rounded shadow p-6 border border-gray-200" }, 
+        React.createElement("h3", { className: "text-base font-semibold text-gray-900 mb-6" }, "My Information"), 
         React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8" }, 
           React.createElement("div", null, 
-            React.createElement("p", { className: "text-gray-500 text-sm font-semibold uppercase tracking-wide" }, "Roll Number"), 
-            React.createElement("p", { className: "text-gray-900 font-bold text-lg mt-2" }, student?.rollNo || 'N/A')
+            React.createElement("p", { className: "text-gray-600 text-xs font-medium uppercase tracking-wide" }, "Roll Number"), 
+            React.createElement("p", { className: "text-gray-900 font-semibold text-sm mt-2" }, student?.rollNo || 'N/A')
           ), 
           React.createElement("div", null, 
-            React.createElement("p", { className: "text-gray-500 text-sm font-semibold uppercase tracking-wide" }, "Course"), 
-            React.createElement("p", { className: "text-gray-900 font-bold text-lg mt-2" }, course?.name || course?.id || 'Not Enrolled')
+            React.createElement("p", { className: "text-gray-600 text-xs font-medium uppercase tracking-wide" }, "Course"), 
+            React.createElement("p", { className: "text-gray-900 font-semibold text-sm mt-2" }, course?.name || course?.id || 'Not Enrolled')
           ), 
           React.createElement("div", null, 
-            React.createElement("p", { className: "text-gray-500 text-sm font-semibold uppercase tracking-wide" }, "Batch"), 
-            React.createElement("p", { className: "text-gray-900 font-bold text-lg mt-2" }, batch?.name || batch?.id || 'Not Assigned')
+            React.createElement("p", { className: "text-gray-600 text-xs font-medium uppercase tracking-wide" }, "Batch"), 
+            React.createElement("p", { className: "text-gray-900 font-semibold text-sm mt-2" }, batch?.name || batch?.id || 'Not Assigned')
           )
         )
       ),
       
       // Quick Actions
       React.createElement("div", null, 
-        React.createElement("h2", { className: "text-2xl font-bold text-gray-900 mb-4" }, "Quick Actions"), 
+        React.createElement("h2", { className: "text-lg font-bold text-gray-900 mb-4" }, "Quick Actions"), 
         React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6" }, 
           React.createElement("button", {
             onClick: () => onNavigate('attendance'),

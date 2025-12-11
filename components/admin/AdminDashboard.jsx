@@ -113,25 +113,25 @@ export function AdminDashboard({
       onLogout={onLogout}
       sidebarItems={sidebarItems}
     >
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-gray-900 text-2xl font-bold">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-1">Overview of the attendance management system</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Admin Dashboard</h1>
+          <p className="text-slate-600">System overview and management controls</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-gray-900 font-semibold mb-4">Filter by Course & Batch</h3>
+        <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+          <h3 className="text-slate-900 font-semibold mb-4">Filter by Course & Batch</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-2">Select Course</label>
+              <label className="block text-slate-700 text-sm font-medium mb-2">Select Course</label>
               <select
                 value={selectedCourseId}
                 onChange={(e) => {
                   setSelectedCourseId(e.target.value);
-                  setSelectedBatchId(''); // Reset batch when course changes
+                  setSelectedBatchId('');
                 }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm"
               >
                 <option value="">All Courses</option>
                 {appState.courses.map(course => (
@@ -142,11 +142,11 @@ export function AdminDashboard({
               </select>
             </div>
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-2">Select Batch</label>
+              <label className="block text-slate-700 text-sm font-medium mb-2">Select Batch</label>
               <select
                 value={selectedBatchId}
                 onChange={(e) => setSelectedBatchId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm"
                 disabled={filteredBatches.length === 0}
               >
                 <option value="">All Batches</option>
@@ -158,65 +158,56 @@ export function AdminDashboard({
               </select>
             </div>
           </div>
-          {(selectedCourseId || selectedBatchId) && (
-            <div className="mt-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-              <p className="text-indigo-800 text-sm">
-                <strong>Filtering:</strong>{' '}
-                {selectedCourseId && `Course: ${stats.selectedCourse?.name} `}
-                {selectedBatchId && `• Batch: ${stats.selectedBatch?.name}`}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Students in {selectedCourseId || selectedBatchId ? 'Selection' : 'All Courses'}</p>
-                <h2 className="text-gray-900 text-3xl font-bold mt-2">{stats.totalStudents}</h2>
+                <p className="text-slate-600 text-sm font-medium">Students</p>
+                <h2 className="text-slate-900 text-3xl font-bold mt-2">{stats.totalStudents}</h2>
               </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <GraduationCap className="text-blue-600" size={24} />
+              <div className="bg-blue-100 p-4 rounded-lg">
+                <GraduationCap className="text-blue-600" size={28} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Batches in {selectedCourseId ? 'Course' : 'System'}</p>
-                <h2 className="text-gray-900 text-3xl font-bold mt-2">{stats.totalBatches}</h2>
+                <p className="text-slate-600 text-sm font-medium">Batches</p>
+                <h2 className="text-slate-900 text-3xl font-bold mt-2">{stats.totalBatches}</h2>
               </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <Calendar className="text-green-600" size={24} />
+              <div className="bg-blue-100 p-4 rounded-lg">
+                <Calendar className="text-blue-600" size={28} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Attendance Records</p>
-                <h2 className="text-gray-900 text-3xl font-bold mt-2">{stats.totalAttendanceRecords}</h2>
-                <p className="text-green-600 text-sm mt-1">✓ {stats.presentCount} Present</p>
+                <p className="text-slate-600 text-sm font-medium">Attendance Records</p>
+                <h2 className="text-slate-900 text-3xl font-bold mt-2">{stats.totalAttendanceRecords}</h2>
+                <p className="text-sky-600 text-xs mt-1">✓ {stats.presentCount} Present</p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <UserCheck className="text-purple-600" size={24} />
+              <div className="bg-sky-100 p-4 rounded-lg">
+                <UserCheck className="text-sky-600" size={28} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Attendance Rate</p>
-                <h2 className="text-gray-900 text-3xl font-bold mt-2">{stats.attendanceRate}%</h2>
-                <p className="text-green-600 text-sm mt-1">↑ {stats.activeSessions} sessions</p>
+                <p className="text-slate-600 text-sm font-medium">Attendance Rate</p>
+                <h2 className="text-slate-900 text-3xl font-bold mt-2">{stats.attendanceRate}%</h2>
+                <p className="text-sky-600 text-xs mt-1">↑ {stats.activeSessions} sessions</p>
               </div>
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <BarChart3 className="text-orange-600" size={24} />
+              <div className="bg-cyan-100 p-4 rounded-lg">
+                <BarChart3 className="text-cyan-600" size={28} />
               </div>
             </div>
           </div>
@@ -224,28 +215,28 @@ export function AdminDashboard({
 
         {/* Course Details */}
         {selectedCourseId && stats.selectedCourse && (
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-gray-900 font-semibold mb-4">Selected Course Details</h3>
+          <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+            <h3 className="text-slate-900 font-semibold mb-4">Selected Course Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <p className="text-gray-600 text-sm">Course Name</p>
-                <p className="text-gray-900 font-medium mt-1">{stats.selectedCourse.name}</p>
+                <p className="text-slate-600 text-sm font-medium">Course Name</p>
+                <p className="text-slate-900 font-semibold mt-1">{stats.selectedCourse.name}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Course Code</p>
-                <p className="text-gray-900 font-medium mt-1">{stats.selectedCourse.code}</p>
+                <p className="text-slate-600 text-sm font-medium">Course Code</p>
+                <p className="text-slate-900 font-semibold mt-1">{stats.selectedCourse.code}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Instructors</p>
+                <p className="text-slate-600 text-sm font-medium">Instructors</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {stats.instructorsInCourse.length > 0 ? (
                     stats.instructorsInCourse.map((name, idx) => (
-                      <span key={idx} className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-sm">
+                      <span key={idx} className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-medium">
                         {name}
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-500 text-sm">No instructors assigned</span>
+                    <span className="text-slate-500 text-xs">No instructors assigned</span>
                   )}
                 </div>
               </div>
@@ -254,40 +245,40 @@ export function AdminDashboard({
         )}
 
         {/* System Statistics */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-gray-900 font-semibold mb-4">Quick Statistics</h3>
+        <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+          <h3 className="text-slate-900 font-semibold mb-4">System Statistics</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <p className="text-gray-600 text-sm">Attendance Rate {selectedCourseId || selectedBatchId ? 'for Selection' : '(System-wide)'}</p>
-              <div className="mt-2 flex items-baseline">
-                <span className="text-gray-900 text-2xl font-bold">{stats.attendanceRate}%</span>
-                <span className="ml-2 text-green-600 text-sm font-medium">✓ Good</span>
+              <p className="text-slate-600 text-sm font-medium">Attendance Rate {selectedCourseId || selectedBatchId ? '(Selection)' : '(System-wide)'}</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-slate-900 text-2xl font-bold">{stats.attendanceRate}%</span>
+                <span className="text-green-600 text-xs font-semibold">✓ Good</span>
               </div>
             </div>
             <div>
-              <p className="text-gray-600 text-sm">Active Sessions {selectedCourseId || selectedBatchId ? 'in Selection' : '(All)'}</p>
-              <p className="text-gray-900 text-2xl font-bold mt-2">{stats.activeSessions}</p>
+              <p className="text-slate-600 text-sm font-medium">Active Sessions {selectedCourseId || selectedBatchId ? '(Selection)' : '(All)'}</p>
+              <p className="text-slate-900 text-2xl font-bold mt-2">{stats.activeSessions}</p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm">Pending Leave Requests</p>
-              <p className="text-gray-900 text-2xl font-bold mt-2">{pendingLeaves}</p>
+              <p className="text-slate-600 text-sm font-medium">Pending Requests</p>
+              <p className="text-slate-900 text-2xl font-bold mt-2">{pendingLeaves}</p>
             </div>
           </div>
         </div>
 
         {/* Recent Attendance */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-gray-900 font-semibold mb-4">Recent Attendance Sessions</h3>
+        <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+          <h3 className="text-slate-900 font-semibold mb-4">Recent Attendance Sessions</h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Date</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Student</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Course</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Batch</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Status</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Marked By</th>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Date</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Student</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Course</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Batch</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Status</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Marked By</th>
                 </tr>
               </thead>
               <tbody>
@@ -298,31 +289,31 @@ export function AdminDashboard({
                     const batch = appState.batches.find(b => b.id === record.batchId);
                     const instructor = appState.instructors.find(i => i.id === record.takenBy);
                     return (
-                      <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4 text-gray-900 text-sm">{record.date}</td>
-                        <td className="py-3 px-4 text-gray-900 text-sm">{student?.name || 'Unknown'}</td>
-                        <td className="py-3 px-4 text-gray-600 text-sm">{course?.code || 'N/A'}</td>
-                        <td className="py-3 px-4 text-gray-600 text-sm">{batch?.name || 'N/A'}</td>
+                      <tr key={record.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-3 px-4 text-slate-900 text-sm">{record.date}</td>
+                        <td className="py-3 px-4 text-slate-900 text-sm font-medium">{student?.name || 'Unknown'}</td>
+                        <td className="py-3 px-4 text-slate-600 text-sm">{course?.code || 'N/A'}</td>
+                        <td className="py-3 px-4 text-slate-600 text-sm">{batch?.name || 'N/A'}</td>
                         <td className="py-3 px-4 text-sm">
                           <span
-                            className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                            className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
                               record.status === 'present'
                                 ? 'bg-green-100 text-green-700'
                                 : record.status === 'absent'
                                   ? 'bg-red-100 text-red-700'
-                                  : 'bg-yellow-100 text-yellow-700'
+                                  : 'bg-amber-100 text-amber-700'
                             }`}
                           >
                             {record.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-gray-600 text-sm">{instructor?.name || 'Admin'}</td>
+                        <td className="py-3 px-4 text-slate-600 text-sm">{instructor?.name || 'Admin'}</td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-6 px-4 text-center text-gray-500">
+                    <td colSpan="6" className="py-8 px-4 text-center text-slate-500 text-sm">
                       No attendance records found for the selected filters
                     </td>
                   </tr>
@@ -333,35 +324,33 @@ export function AdminDashboard({
         </div>
 
         {/* Recent Leaves */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-gray-900 font-semibold mb-4">Recent Leave Applications</h3>
+        <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+          <h3 className="text-slate-900 font-semibold mb-4">Recent Leave Applications</h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Applied Date</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Name</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Batch / Course</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Leave Period</th>
-                  <th className="text-left py-3 px-4 text-gray-700 text-sm font-medium">Status</th>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Applied Date</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Name</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Batch / Course</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Leave Period</th>
+                  <th className="text-left py-3 px-4 text-slate-700 text-sm font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recentLeaves.map(leave => (
-                  <tr key={leave.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 text-gray-900 text-sm">{leave.appliedDate}</td>
-                    <td className="py-3 px-4 text-gray-900 text-sm">{leave.userName}</td>
-                    <td className="py-3 px-4 text-sm">
-                      <span className="text-gray-600">{getUserAssociation(leave)}</span>
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 text-sm">
+                  <tr key={leave.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="py-3 px-4 text-slate-900 text-sm">{leave.appliedDate}</td>
+                    <td className="py-3 px-4 text-slate-900 text-sm font-medium">{leave.userName}</td>
+                    <td className="py-3 px-4 text-sm text-slate-600">{getUserAssociation(leave)}</td>
+                    <td className="py-3 px-4 text-slate-600 text-sm">
                       {leave.startDate} to {leave.endDate}
                     </td>
                     <td className="py-3 px-4 text-sm">
                       <span
-                        className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                        className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
                           leave.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-700'
+                            ? 'bg-amber-100 text-amber-700'
                             : leave.status === 'approved'
                               ? 'bg-green-100 text-green-700'
                               : 'bg-red-100 text-red-700'
@@ -381,29 +370,35 @@ export function AdminDashboard({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
             onClick={() => onNavigate('courses')}
-            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow text-left hover:border-indigo-300"
+            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
           >
-            <BookOpen className="text-indigo-600 mb-3" size={32} />
-            <h3 className="text-gray-900 font-semibold">Add New Course</h3>
-            <p className="text-gray-600 mt-1 text-sm">Create and manage courses</p>
+            <div className="bg-blue-100 p-3 rounded-lg w-fit mb-3 group-hover:bg-blue-200 transition">
+              <BookOpen className="text-blue-600" size={28} />
+            </div>
+            <h3 className="text-slate-900 font-semibold">Add New Course</h3>
+            <p className="text-slate-600 mt-1 text-sm">Create and manage courses</p>
           </button>
 
           <button
             onClick={() => onNavigate('students')}
-            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow text-left hover:border-indigo-300"
+            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
           >
-            <GraduationCap className="text-indigo-600 mb-3" size={32} />
-            <h3 className="text-gray-900 font-semibold">Add New Student</h3>
-            <p className="text-gray-600 mt-1 text-sm">Enroll students in system</p>
+            <div className="bg-blue-100 p-3 rounded-lg w-fit mb-3 group-hover:bg-blue-200 transition">
+              <GraduationCap className="text-blue-600" size={28} />
+            </div>
+            <h3 className="text-slate-900 font-semibold">Add New Student</h3>
+            <p className="text-slate-600 mt-1 text-sm">Enroll students in system</p>
           </button>
 
           <button
             onClick={() => onNavigate('attendance')}
-            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow text-left hover:border-indigo-300"
+            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
           >
-            <UserCheck className="text-indigo-600 mb-3" size={32} />
-            <h3 className="text-gray-900 font-semibold">View Attendance</h3>
-            <p className="text-gray-600 mt-1 text-sm">Monitor attendance records</p>
+            <div className="bg-blue-100 p-3 rounded-lg w-fit mb-3 group-hover:bg-blue-200 transition">
+              <UserCheck className="text-blue-600" size={28} />
+            </div>
+            <h3 className="text-slate-900 font-semibold">View Attendance</h3>
+            <p className="text-slate-600 mt-1 text-sm">Monitor attendance records</p>
           </button>
         </div>
       </div>

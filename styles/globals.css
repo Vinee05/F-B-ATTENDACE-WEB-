@@ -3,48 +3,48 @@
 @tailwind utilities;
 
 :root {
-  --font-size: 16px;
-  --text-base: 16px;
-  --text-lg: 18px;
-  --text-xl: 20px;
-  --text-2xl: 24px;
-  --background: #f8f9fa;
-  --foreground: #1a1a1a;
+  --font-size: 15px;
+  --text-base: 15px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 22px;
+  --background: #f0f4f9;
+  --foreground: #1a202c;
   --card: #ffffff;
-  --card-foreground: #1a1a1a;
+  --card-foreground: #1a202c;
   --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #1e40af;
+  --popover-foreground: #1a202c;
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
-  --secondary: #e5e7eb;
-  --secondary-foreground: #1a1a1a;
-  --muted: #d1d5db;
-  --muted-foreground: #6b7280;
-  --accent: #1e40af;
+  --secondary: #f0f9ff;
+  --secondary-foreground: #1a202c;
+  --muted: #cbd5e1;
+  --muted-foreground: #475569;
+  --accent: #f97316;
   --accent-foreground: #ffffff;
-  --destructive: #dc2626;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
+  --border: #e2e8f0;
   --input: #ffffff;
-  --input-background: #f3f4f6;
+  --input-background: #f8fafc;
   --switch-background: #cbd5e1;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #1e40af;
-  --chart-1: #1e40af;
-  --chart-2: #10b981;
-  --chart-3: #f59e0b;
+  --ring: #2563eb;
+  --chart-1: #2563eb;
+  --chart-2: #0ea5e9;
+  --chart-3: #f97316;
   --chart-4: #ef4444;
   --chart-5: #8b5cf6;
-  --radius: 0.5rem;
-  --sidebar: #2c3e50;
+  --radius: 0.375rem;
+  --sidebar: #1e293b;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #1e40af;
+  --sidebar-primary: #3b82f6;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #3b5998;
+  --sidebar-accent: #f97316;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #34495e;
-  --sidebar-ring: #1e40af;
+  --sidebar-border: #334155;
+  --sidebar-ring: #2563eb;
 }
 
 .dark {
@@ -89,66 +89,72 @@
     @apply border-border;
   }
 
+  html {
+    font-size: var(--font-size);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
+    letter-spacing: 0.3px;
   }
-}
 
-/**
- * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
- */
-@layer base {
-  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
-    h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h3 {
-      font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h4 {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    p {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
-
-    label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.5px;
+    color: #111827;
   }
-}
 
-html {
-  font-size: var(--font-size);
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.3px;
+    color: #1f2937;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+
+  h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+
+  p {
+    font-size: var(--text-base);
+    font-weight: 400;
+    line-height: 1.6;
+    color: #374151;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  input, textarea, select {
+    font-size: var(--text-base);
+    font-weight: 400;
+    line-height: 1.5;
+    font-family: inherit;
+  }
 }
