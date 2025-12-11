@@ -180,8 +180,8 @@ export function AdminDashboard({
                 <p className="text-slate-600 text-sm font-medium">Batches</p>
                 <h2 className="text-slate-900 text-3xl font-bold mt-2">{stats.totalBatches}</h2>
               </div>
-              <div className="bg-blue-100 p-4 rounded-lg">
-                <Calendar className="text-blue-600" size={28} />
+              <div className="bg-sky-100 p-4 rounded-lg">
+                <Calendar className="text-sky-600" size={28} />
               </div>
             </div>
           </div>
@@ -191,10 +191,10 @@ export function AdminDashboard({
               <div>
                 <p className="text-slate-600 text-sm font-medium">Attendance Records</p>
                 <h2 className="text-slate-900 text-3xl font-bold mt-2">{stats.totalAttendanceRecords}</h2>
-                <p className="text-sky-600 text-xs mt-1">✓ {stats.presentCount} Present</p>
+                <p className="text-blue-600 text-xs mt-1">✓ {stats.presentCount} Present</p>
               </div>
-              <div className="bg-sky-100 p-4 rounded-lg">
-                <UserCheck className="text-sky-600" size={28} />
+              <div className="bg-blue-100 p-4 rounded-lg">
+                <UserCheck className="text-blue-600" size={28} />
               </div>
             </div>
           </div>
@@ -206,8 +206,8 @@ export function AdminDashboard({
                 <h2 className="text-slate-900 text-3xl font-bold mt-2">{stats.attendanceRate}%</h2>
                 <p className="text-sky-600 text-xs mt-1">↑ {stats.activeSessions} sessions</p>
               </div>
-              <div className="bg-cyan-100 p-4 rounded-lg">
-                <BarChart3 className="text-cyan-600" size={28} />
+              <div className="bg-sky-100 p-4 rounded-lg">
+                <BarChart3 className="text-sky-600" size={28} />
               </div>
             </div>
           </div>
@@ -370,7 +370,7 @@ export function AdminDashboard({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
             onClick={() => onNavigate('courses')}
-            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
+            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-400 text-left group"
           >
             <div className="bg-blue-100 p-3 rounded-lg w-fit mb-3 group-hover:bg-blue-200 transition">
               <BookOpen className="text-blue-600" size={28} />
@@ -381,7 +381,7 @@ export function AdminDashboard({
 
           <button
             onClick={() => onNavigate('students')}
-            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
+            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-400 text-left group"
           >
             <div className="bg-blue-100 p-3 rounded-lg w-fit mb-3 group-hover:bg-blue-200 transition">
               <GraduationCap className="text-blue-600" size={28} />
@@ -392,7 +392,7 @@ export function AdminDashboard({
 
           <button
             onClick={() => onNavigate('attendance')}
-            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
+            className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow hover:border-blue-400 text-left group"
           >
             <div className="bg-blue-100 p-3 rounded-lg w-fit mb-3 group-hover:bg-blue-200 transition">
               <UserCheck className="text-blue-600" size={28} />

@@ -111,18 +111,18 @@ export function StudentDashboard({
       ),
 
       // Enrollment Card
-      React.createElement("div", { className: "bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg p-6 text-white shadow-lg" },
+      React.createElement("div", { className: "bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg p-6 text-white shadow-lg" },
         React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8" },
           React.createElement("div", null,
-            React.createElement("p", { className: "text-purple-100 text-sm font-medium uppercase tracking-wide" }, "Course"),
+            React.createElement("p", { className: "text-blue-50 text-sm font-medium uppercase tracking-wide" }, "Course"),
             React.createElement("p", { className: "text-xl font-bold mt-2" }, course?.name || course?.code || 'Not Enrolled')
           ),
           React.createElement("div", null,
-            React.createElement("p", { className: "text-purple-100 text-sm font-medium uppercase tracking-wide" }, "Batch"),
+            React.createElement("p", { className: "text-blue-50 text-sm font-medium uppercase tracking-wide" }, "Batch"),
             React.createElement("p", { className: "text-xl font-bold mt-2" }, batch?.name || batch?.id || 'Not Assigned')
           ),
           React.createElement("div", null,
-            React.createElement("p", { className: "text-purple-100 text-sm font-medium uppercase tracking-wide" }, "Roll"),
+            React.createElement("p", { className: "text-blue-50 text-sm font-medium uppercase tracking-wide" }, "Roll"),
             React.createElement("p", { className: "text-xl font-bold mt-2" }, student?.rollNo || 'N/A')
           )
         )
@@ -136,8 +136,8 @@ export function StudentDashboard({
               React.createElement("p", { className: "text-slate-600 text-sm font-medium" }, "Classes Present"),
               React.createElement("h2", { className: "text-3xl font-bold text-emerald-500 mt-2" }, totalPresent)
             ),
-            React.createElement("div", { className: "bg-sky-100 p-4 rounded-lg" },
-              React.createElement(UserCheck, { className: "text-sky-600", size: 32 })
+            React.createElement("div", { className: "bg-green-100 p-4 rounded-lg" },
+              React.createElement(UserCheck, { className: "text-green-600", size: 32 })
             )
           )
         ),
@@ -147,8 +147,8 @@ export function StudentDashboard({
               React.createElement("p", { className: "text-slate-600 text-sm font-medium" }, "Classes Absent"),
               React.createElement("h2", { className: "text-3xl font-bold text-rose-600 mt-2" }, totalAbsent)
             ),
-            React.createElement("div", { className: "bg-orange-100 p-4 rounded-lg" },
-              React.createElement(UserCheck, { className: "text-orange-600", size: 32 })
+            React.createElement("div", { className: "bg-red-100 p-4 rounded-lg" },
+              React.createElement(UserCheck, { className: "text-red-600", size: 32 })
             )
           )
         ),
@@ -160,8 +160,8 @@ export function StudentDashboard({
                 className: `text-3xl font-bold mt-2 ${percentage >= 75 ? 'text-blue-600' : percentage >= 60 ? 'text-amber-600' : 'text-orange-600'}`
               }, percentage, "%")
             ),
-            React.createElement("div", { className: "bg-indigo-100 p-4 rounded-lg" },
-              React.createElement(TrendingUp, { className: "text-indigo-600", size: 32 })
+            React.createElement("div", { className: "bg-blue-100 p-4 rounded-lg" },
+              React.createElement(TrendingUp, { className: "text-blue-600", size: 32 })
             )
           )
         )

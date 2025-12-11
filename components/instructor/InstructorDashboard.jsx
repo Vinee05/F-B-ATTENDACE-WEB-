@@ -62,8 +62,8 @@ export function InstructorDashboard({
                 <p className="text-slate-600 text-sm font-medium">Batches</p>
                 <h2 className="text-slate-900 text-3xl font-bold mt-2">{myBatches.length}</h2>
               </div>
-              <div className="bg-blue-100 p-4 rounded-lg">
-                <Calendar className="text-blue-600" size={28} />
+              <div className="bg-sky-100 p-4 rounded-lg">
+                <Calendar className="text-sky-600" size={28} />
               </div>
             </div>
           </div>
@@ -74,8 +74,8 @@ export function InstructorDashboard({
                 <p className="text-slate-600 text-sm font-medium">Total Students</p>
                 <h2 className="text-slate-900 text-3xl font-bold mt-2">{totalStudents}</h2>
               </div>
-              <div className="bg-sky-100 p-4 rounded-lg">
-                <UserCheck className="text-sky-600" size={28} />
+              <div className="bg-purple-100 p-4 rounded-lg">
+                <UserCheck className="text-purple-600" size={28} />
               </div>
             </div>
           </div>
@@ -94,14 +94,14 @@ export function InstructorDashboard({
                   <button
                     key={course.id}
                     onClick={() => onNavigate('course', course.id)}
-                    className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition-shadow hover:border-blue-300 text-left group"
+                    className="bg-white rounded-lg p-6 border border-slate-200 shadow hover:shadow-lg transition-shadow hover:border-teal-300 text-left group"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold mb-2">
+                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs font-semibold mb-2">
                         {course.code}
                       </span>
-                      <h3 className="text-slate-900 font-semibold group-hover:text-purple-600 transition">{course.name}</h3>
+                      <h3 className="text-slate-900 font-semibold group-hover:text-blue-600 transition">{course.name}</h3>
                     </div>
                   </div>
                   <p className="text-slate-600 text-sm mb-4 line-clamp-2">{course.description}</p>

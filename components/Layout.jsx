@@ -12,9 +12,11 @@ export const Layout = ({
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex h-screen"
   }, /*#__PURE__*/React.createElement("aside", {
-    className: "w-60 bg-slate-900 text-white shadow-md flex flex-col"
+    className: "w-60 text-white shadow-md flex flex-col",
+    style: { backgroundColor: 'var(--sidebar)', borderColor: 'var(--sidebar-border)' }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "px-6 py-5 border-b border-slate-700"
+    className: "px-6 py-5 border-b rounded-lg",
+    style: { borderColor: 'var(--sidebar-border)', backgroundColor: '#ffffff' }
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2 mb-2"
   }, /*#__PURE__*/React.createElement("img", {
@@ -22,11 +24,12 @@ export const Layout = ({
     alt: "Atria Logo",
     className: "h-10 w-auto"
   }), /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-white text-sm"
+    className: "font-bold text-blue-600 text-sm"
   }, "ATRIA")), /*#__PURE__*/React.createElement("p", {
-    className: "text-amber-400 text-xs font-medium"
+    className: "text-blue-600 text-xs font-medium"
   }, "Attendance System")), /*#__PURE__*/React.createElement("div", {
-    className: "px-6 py-3 border-b border-slate-700"
+    className: "px-6 py-3 border-b",
+    style: { borderColor: 'var(--sidebar-border)' }
   }, /*#__PURE__*/React.createElement("p", {
     className: "text-slate-300 font-medium text-sm"
   }, user?.name || 'Guest')), /*#__PURE__*/React.createElement("nav", {
@@ -34,9 +37,11 @@ export const Layout = ({
   }, sidebarItems.map(item => /*#__PURE__*/React.createElement("button", {
     key: item.id,
     onClick: () => onNavigate(item.id),
-    className: `w-full text-left px-3 py-2.5 rounded flex items-center gap-3 text-sm transition ${currentPage === item.id ? 'bg-amber-500 text-white font-medium' : 'text-slate-300 hover:bg-slate-800'}`
+    className: `w-full text-left px-3 py-2.5 rounded flex items-center gap-3 text-sm transition ${currentPage === item.id ? 'text-white font-medium' : 'text-slate-300 hover:bg-slate-800'}`,
+    style: currentPage === item.id ? { backgroundColor: 'var(--sidebar-primary)' } : {}
   }, item.icon, /*#__PURE__*/React.createElement("span", null, item.label)))), /*#__PURE__*/React.createElement("div", {
-    className: "border-t border-slate-700 p-3"
+    className: "border-t p-3",
+    style: { borderColor: 'var(--sidebar-border)' }
   }, /*#__PURE__*/React.createElement("button", {
     onClick: onLogout,
     className: "w-full px-3 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition font-medium"
