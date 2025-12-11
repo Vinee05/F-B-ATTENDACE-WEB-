@@ -58,8 +58,45 @@ export function LeaveRequests({ appState, setAppState, user, onNavigate, onLogou
     return true;
   });
 
-  const handleApprove = leaveId => setAppState(prev => ({ ...prev, leaveRequests: prev.leaveRequests.map(l => (l.id === leaveId ? { ...l, status: 'approved' } : l)) }));
-  const handleReject = leaveId => setAppState(prev => ({ ...prev, leaveRequests: prev.leaveRequests.map(l => (l.id === leaveId ? { ...l, status: 'rejected' } : l)) }));
+  const handleApprove = async (leaveId) => {
+    try {
+      const res = await fetch(`/api/leaverequests/${leaveId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' })
+      });
+      if (!res.ok) throw new Error('Failed to approve leave request');
+      
+      const leaveRes = await fetch('/api/leaverequests');
+      if (!leaveRes.ok) throw new Error('Failed to reload leave requests');
+      const leaveRequests = await leaveRes.json();
+      setAppState(prev => ({ ...prev, leaveRequests }));
+      alert('Leave request approved successfully!');
+    } catch (err) {
+      console.error('Error approving leave:', err);
+      alert('Failed to approve leave request: ' + err.message);
+    }
+  };
+
+  const handleReject = async (leaveId) => {
+    try {
+      const res = await fetch(`/api/leaverequests/${leaveId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected' })
+      });
+      if (!res.ok) throw new Error('Failed to reject leave request');
+      
+      const leaveRes = await fetch('/api/leaverequests');
+      if (!leaveRes.ok) throw new Error('Failed to reload leave requests');
+      const leaveRequests = await leaveRes.json();
+      setAppState(prev => ({ ...prev, leaveRequests }));
+      alert('Leave request rejected successfully!');
+    } catch (err) {
+      console.error('Error rejecting leave:', err);
+      alert('Failed to reject leave request: ' + err.message);
+    }
+  };
 
   const selectedAssociationLabel = selectedLeave
     ? (() => {
@@ -169,31 +206,109 @@ export function LeaveRequests({ appState, setAppState, user, onNavigate, onLogou
         </div>
 
         {selectedLeave && (
-          <div className="bg-white rounded-xl p-6 border border-gray-200 max-w-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-gray-900">Document Preview</h2>
-              <button onClick={() => setSelectedLeave(null)}><XIcon size={24} /></button>
-            </div>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-gray-900 text-xl font-semibold">Leave Request Details</h2>
+                <button onClick={() => setSelectedLeave(null)} className="text-gray-500 hover:text-gray-700">
+                  <XIcon size={24} />
+                </button>
+              </div>
 
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <FileText size={64} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-900 mb-2">{selectedLeave.document || 'No document'}</p>
-              <p className="text-gray-600">Document preview would be displayed here</p>
-            </div>
+              <div className="space-y-4 mb-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-gray-600 text-sm">Submitted by:</span>
+                    <p className="text-gray-900 font-medium">{selectedLeave.userName}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 text-sm">Role:</span>
+                    <p className="text-gray-900 font-medium capitalize">{selectedLeave.userRole}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 text-sm">Batch / Course:</span>
+                    <p className="text-gray-900 font-medium">{selectedAssociationLabel || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 text-sm">Applied Date:</span>
+                    <p className="text-gray-900 font-medium">{selectedLeave.appliedDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 text-sm">Leave Period:</span>
+                    <p className="text-gray-900 font-medium">{selectedLeave.startDate} to {selectedLeave.endDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 text-sm">Duration:</span>
+                    <p className="text-gray-900 font-medium">
+                      {Math.ceil((new Date(selectedLeave.endDate).getTime() - new Date(selectedLeave.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} day(s)
+                    </p>
+                  </div>
+                </div>
 
-            <div className="mt-6 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Submitted by:</span>
-                <span className="text-gray-900">{selectedLeave.userName}</span>
+                <div>
+                  <span className="text-gray-600 text-sm">Reason:</span>
+                  <p className="text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">{selectedLeave.reason}</p>
+                </div>
+
+                <div>
+                  <span className="text-gray-600 text-sm">Status:</span>
+                  <span className={`ml-2 px-3 py-1 rounded-full text-sm ${selectedLeave.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : selectedLeave.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {selectedLeave.status.charAt(0).toUpperCase() + selectedLeave.status.slice(1)}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Batch / Course:</span>
-                <span className="text-gray-900">{selectedAssociationLabel}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Leave Period:</span>
-                <span className="text-gray-900">{selectedLeave.startDate} to {selectedLeave.endDate}</span>
-              </div>
+
+              {selectedLeave.document ? (
+                <div>
+                  <span className="text-gray-600 text-sm mb-2 block">Supporting Document:</span>
+                  <div className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <FileText size={24} className="text-indigo-600" />
+                        <span className="text-gray-900 font-medium">{selectedLeave.document.split('/').pop()}</span>
+                      </div>
+                      <a href={selectedLeave.document} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                        Open File
+                      </a>
+                    </div>
+                    {selectedLeave.document.match(/\.(jpg|jpeg|png)$/i) ? (
+                      <div className="text-center p-4 bg-white rounded border border-gray-200">
+                        <p className="text-gray-600 mb-3">Image Preview:</p>
+                        <img src={selectedLeave.document} alt="Leave document" className="max-w-full max-h-96 mx-auto rounded" />
+                      </div>
+                    ) : selectedLeave.document.match(/\.pdf$/i) ? (
+                      <div className="text-center p-4 bg-white rounded border border-gray-200">
+                        <p className="text-gray-600 mb-3">PDF Document:</p>
+                        <iframe src={selectedLeave.document} title="PDF Preview" className="w-full h-96 rounded border" />
+                      </div>
+                    ) : (
+                      <div className="text-center p-4 bg-white rounded border border-gray-200">
+                        <FileText size={48} className="mx-auto text-gray-400 mb-2" />
+                        <p className="text-gray-600">{selectedLeave.document.split('/').pop()}</p>
+                        <a href={selectedLeave.document} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block">
+                          Download File
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-6 text-center border-2 border-dashed border-gray-300">
+                  <FileText size={48} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-600">No supporting document attached</p>
+                </div>
+              )}
+
+              {selectedLeave.status === 'pending' && (
+                <div className="flex space-x-3 mt-6 pt-4 border-t border-gray-200">
+                  <button onClick={() => { handleApprove(selectedLeave.id); setSelectedLeave(null); }} className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                    Approve Request
+                  </button>
+                  <button onClick={() => { handleReject(selectedLeave.id); setSelectedLeave(null); }} className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
+                    Reject Request
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

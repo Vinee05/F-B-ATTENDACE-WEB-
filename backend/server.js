@@ -2,11 +2,48 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve uploaded files as static assets
+app.use('/uploads', express.static(uploadsDir));
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename: timestamp-originalname
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /pdf|jpg|jpeg|png/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only PDF, JPG, and PNG files are allowed'));
+    }
+  }
+});
 
 // Default admin bootstrap (minimal, avoids legacy in-memory seeds)
 const DEFAULT_ADMINS = [
@@ -568,6 +605,24 @@ app.put('/api/leaverequests/:id', async (req, res) => {
     await l.update(req.body);
     res.json(l);
   } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
+});
+
+// --- File Upload for Leave Requests ---
+app.post('/api/leaverequests/upload', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    res.json({
+      filename: req.file.filename,
+      originalname: req.file.originalname,
+      path: `/uploads/${req.file.filename}`,
+      size: req.file.size
+    });
+  } catch (err) {
+    console.error('File upload error:', err);
+    res.status(500).json({ error: err.message || 'File upload failed' });
+  }
 });
 
 // --- Notifications ---

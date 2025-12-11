@@ -6,8 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "server": "node server.js",
-    "server:dev": "nodemon server.js"
+    "server": "node backend/server.js",
+    "server:dev": "nodemon backend/server.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -38,11 +38,12 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.275.0",
-    "sequelize": "^6.32.1",
-    "sqlite3": "^5.1.6",
+    "multer": "^1.4.5-lts.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recharts": "^3.5.1",
+    "sequelize": "^6.32.1",
+    "sqlite3": "^5.1.6",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

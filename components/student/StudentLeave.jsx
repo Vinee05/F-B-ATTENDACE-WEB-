@@ -15,6 +15,9 @@ export function StudentLeave({
     reason: '',
     document: ''
   });
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const sidebarItems = [{
     id: 'dashboard',
     label: 'Dashboard',
@@ -41,28 +44,104 @@ export function StudentLeave({
     })
   }];
   const myLeaves = appState.leaveRequests.filter(l => l.userId === user.id);
-  const handleSubmit = e => {
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        e.target.value = '';
+        return;
+      }
+      // Check file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Only PDF, JPG, and PNG files are allowed');
+        e.target.value = '';
+        return;
+      }
+      setUploadedFile(file);
+      setFormData({ ...formData, document: file.name });
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newLeave = {
-      id: `l${Date.now()}`,
-      userId: user.id,
-      userName: user.name,
-      userRole: 'student',
-      ...formData,
-      status: 'pending',
-      appliedDate: new Date().toISOString().split('T')[0]
-    };
-    setAppState(prev => ({
-      ...prev,
-      leaveRequests: [newLeave, ...prev.leaveRequests]
-    }));
-    setFormData({
-      startDate: '',
-      endDate: '',
-      reason: '',
-      document: ''
-    });
-    setShowApplyForm(false);
+    setIsSubmitting(true);
+
+    try {
+      let documentPath = null;
+
+      // Upload file if selected
+      if (uploadedFile) {
+        const formDataFile = new FormData();
+        formDataFile.append('file', uploadedFile);
+
+        const uploadRes = await fetch('/api/leaverequests/upload', {
+          method: 'POST',
+          body: formDataFile
+        });
+
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json();
+          throw new Error(errData.error || 'Failed to upload file');
+        }
+
+        const uploadedData = await uploadRes.json();
+        documentPath = uploadedData.path; // e.g., /uploads/1733900000-document.pdf
+      }
+
+      const payload = {
+        userId: user.id,
+        userName: user.name,
+        userRole: 'student',
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        reason: formData.reason,
+        document: documentPath || null, // Store the full path
+        status: 'pending',
+        appliedDate: new Date().toISOString().split('T')[0]
+      };
+
+      const res = await fetch('/api/leaverequests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to submit leave request');
+      }
+
+      const created = await res.json();
+
+      // Refresh leave requests from backend
+      const leaveRes = await fetch('/api/leaverequests');
+      if (!leaveRes.ok) throw new Error('Failed to reload leave requests');
+      const leaveRequests = await leaveRes.json();
+      
+      setAppState(prev => ({
+        ...prev,
+        leaveRequests
+      }));
+
+      setFormData({
+        startDate: '',
+        endDate: '',
+        reason: '',
+        document: ''
+      });
+      setUploadedFile(null);
+      setShowApplyForm(false);
+      alert('Leave request submitted successfully!');
+    } catch (err) {
+      console.error('Error submitting leave request:', err);
+      alert('Failed to submit leave request: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return /*#__PURE__*/React.createElement(Layout, {
     user: user,
@@ -214,24 +293,31 @@ export function StudentLeave({
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-gray-700 mb-2"
   }, "Upload Supporting Document (Optional)"), /*#__PURE__*/React.createElement("div", {
-    className: "border-2 border-dashed border-gray-300 rounded-lg p-4 text-center"
+    className: "border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors cursor-pointer",
+    onClick: () => document.getElementById('file-upload').click()
   }, /*#__PURE__*/React.createElement(Upload, {
     className: "mx-auto text-gray-400 mb-2",
     size: 32
   }), /*#__PURE__*/React.createElement("p", {
     className: "text-gray-600"
-  }, "Click to upload or drag and drop"), /*#__PURE__*/React.createElement("p", {
+  }, uploadedFile ? uploadedFile.name : "Click to upload or drag and drop"), /*#__PURE__*/React.createElement("p", {
     className: "text-gray-500 mt-1"
   }, "PDF, JPG, PNG up to 5MB"), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    value: formData.document,
-    onChange: e => setFormData({
-      ...formData,
-      document: e.target.value
-    }),
-    className: "w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
-    placeholder: "Enter document name (e.g., medical-certificate.pdf)"
-  }))), /*#__PURE__*/React.createElement("div", {
+    id: "file-upload",
+    type: "file",
+    accept: ".pdf,.jpg,.jpeg,.png",
+    onChange: handleFileChange,
+    className: "hidden"
+  }), uploadedFile && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: (e) => {
+      e.stopPropagation();
+      setUploadedFile(null);
+      setFormData({ ...formData, document: '' });
+      document.getElementById('file-upload').value = '';
+    },
+    className: "mt-2 text-red-600 hover:text-red-700 text-sm"
+  }, "Remove file"))), /*#__PURE__*/React.createElement("div", {
     className: "bg-blue-50 border border-blue-200 rounded-lg p-4"
   }, /*#__PURE__*/React.createElement("h4", {
     className: "text-blue-900 mb-2"
@@ -241,10 +327,16 @@ export function StudentLeave({
     className: "flex space-x-3 pt-4"
   }, /*#__PURE__*/React.createElement("button", {
     type: "submit",
-    className: "flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
-  }, "Submit Request"), /*#__PURE__*/React.createElement("button", {
+    disabled: isSubmitting,
+    className: "flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+  }, isSubmitting ? "Submitting..." : "Submit Request"), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    onClick: () => setShowApplyForm(false),
-    className: "flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
+    onClick: () => {
+      setShowApplyForm(false);
+      setUploadedFile(null);
+      setFormData({ startDate: '', endDate: '', reason: '', document: '' });
+    },
+    disabled: isSubmitting,
+    className: "flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
   }, "Cancel")))))));
 }
