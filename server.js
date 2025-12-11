@@ -16,6 +16,7 @@ const DEFAULT_ADMINS = [
     email: 'admin1@example.com',
     employeeId: 'ADM001',
     status: 'active',
+    password: 'admin123',
     createdAt: '2025-01-01'
   }
 ];
@@ -35,7 +36,7 @@ function genId(prefix) {
 }
 
 // Initialize SQLite (Sequelize) - don't block server startup
-const { init, sequelize, Student, Course, Batch, Instructor, Attendance, CourseInstructor, Enrollment, Admin, LeaveRequest, Notification } = require('./server/sqlite');
+const { init, sequelize, Student, Course, Batch, Instructor, Attendance, CourseInstructor, Enrollment, Admin, LeaveRequest, Notification, SystemSetting } = require('./server/sqlite');
 let dbReady = false;
 init()
   .then(async () => {
@@ -58,6 +59,7 @@ async function ensureAdminsSeeded() {
       email: admin.email,
       employeeId: admin.employeeId || null,
       status: admin.status || 'active',
+      password: admin.password || 'admin123',
       createdAt: admin.createdAt || new Date().toISOString().split('T')[0]
     };
     await Admin.findOrCreate({ where: { id: payload.id }, defaults: payload });
@@ -66,19 +68,110 @@ async function ensureAdminsSeeded() {
 
 // --- Authentication ---
 app.post('/api/login', async (req, res) => {
-  const { email } = req.body || {};
-  if (!email) return res.status(400).json({ error: 'email required' });
+  const { email, password } = req.body || {};
+  if (!email || !password) return res.status(400).json({ error: 'email and password required' });
   try {
     // Check admins
     const admin = await Admin.findOne({ where: { email } });
-    if (admin) return res.json({ id: admin.id, name: admin.name, email, role: 'admin' });
+    if (admin) {
+      if (admin.password !== password) return res.status(401).json({ error: 'invalid password' });
+      return res.json({ id: admin.id, name: admin.name, email, role: 'admin' });
+    }
     const instructor = await Instructor.findOne({ where: { email } });
-    if (instructor) return res.json({ id: instructor.id, name: instructor.name, email, role: 'instructor' });
+    if (instructor) {
+      if (instructor.password !== password) return res.status(401).json({ error: 'invalid password' });
+      return res.json({ id: instructor.id, name: instructor.name, email, role: 'instructor' });
+    }
     const student = await Student.findOne({ where: { email } });
-    if (student) return res.json({ id: student.id, name: student.name, email, role: 'student' });
-    return res.json({ id: '', name: 'User', email, role: 'student' });
+    if (student) {
+      if (student.password !== password) return res.status(401).json({ error: 'invalid password' });
+      return res.json({ id: student.id, name: student.name, email, role: 'student' });
+    }
+    return res.status(401).json({ error: 'email not found' });
   } catch (err) {
     console.error('login error', err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
+// --- Password update ---
+// Body: { role: 'admin'|'instructor'|'student', email, currentPassword, newPassword }
+app.put('/api/users/password', async (req, res) => {
+  const { role, email, currentPassword, newPassword } = req.body || {};
+  if (!role || !email || !currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'role, email, currentPassword, newPassword are required' });
+  }
+  const r = String(role).toLowerCase();
+  let Model = null;
+  if (r === 'admin') Model = Admin;
+  else if (r === 'instructor') Model = Instructor;
+  else if (r === 'student') Model = Student;
+  else return res.status(400).json({ error: 'invalid role' });
+
+  try {
+    const user = await Model.findOne({ where: { email } });
+    if (!user) return res.status(404).json({ error: 'user not found' });
+    if (user.password !== currentPassword) return res.status(401).json({ error: 'current password incorrect' });
+    await user.update({ password: newPassword });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('password update error', err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
+// --- Unified user create (role-based) ---
+// Accepts { role: 'admin'|'instructor'|'student', email, password, name, employeeId?, rollNo?, parentsEmail? }
+// Creates the record in the corresponding table and returns the created user with role
+app.post('/api/users', async (req, res) => {
+  const { role, email, password, name, employeeId, rollNo, parentsEmail } = req.body || {};
+  if (!role || !email || !password || !name) {
+    return res.status(400).json({ error: 'role, name, email, password are required' });
+  }
+  const normalizedRole = String(role).toLowerCase();
+  try {
+    if (normalizedRole === 'admin') {
+      const payload = {
+        id: req.body.id || genId('admin'),
+        name,
+        email,
+        employeeId: employeeId || null,
+        status: req.body.status || 'active',
+        password,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      const created = await Admin.create(payload);
+      return res.status(201).json({ ...created.toJSON(), role: 'admin' });
+    }
+
+    if (normalizedRole === 'instructor') {
+      const payload = {
+        id: req.body.id || genId('inst'),
+        name,
+        email,
+        employeeId: employeeId || null,
+        password
+      };
+      const created = await Instructor.create(payload);
+      return res.status(201).json({ ...created.toJSON(), role: 'instructor' });
+    }
+
+    if (normalizedRole === 'student') {
+      const payload = {
+        id: req.body.id || genId('s'),
+        name,
+        email,
+        rollNo: rollNo || null,
+        parentsEmail: parentsEmail || null,
+        password
+      };
+      const created = await Student.create(payload);
+      return res.status(201).json({ ...created.toJSON(), role: 'student' });
+    }
+
+    return res.status(400).json({ error: 'role must be admin, instructor, or student' });
+  } catch (err) {
+    console.error('create user error', err);
     res.status(500).json({ error: 'internal' });
   }
 });
@@ -87,7 +180,17 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/courses', async (req, res) => {
   try {
     const courses = await Course.findAll();
-    res.json(courses);
+    const instructors = await Instructor.findAll();
+    const instructorMap = Object.fromEntries(instructors.map(i => [i.id, i.name]));
+
+    const shaped = courses.map(c => {
+      const instructorIds = c.instructorIds ? JSON.parse(c.instructorIds) : [];
+      const courseDays = c.courseDays ? JSON.parse(c.courseDays) : [];
+      const instructorNames = instructorIds.map(id => instructorMap[id]).filter(Boolean);
+      return { ...c.toJSON(), instructorIds, courseDays, instructorNames };
+    });
+
+    res.json(shaped);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'internal' });
@@ -97,7 +200,12 @@ app.get('/api/courses', async (req, res) => {
 app.post('/api/courses', async (req, res) => {
   try {
     const id = genId('course');
-    const created = await Course.create({ id, ...req.body });
+    const payload = {
+      ...req.body,
+      instructorIds: JSON.stringify(req.body.instructorIds || []),
+      courseDays: JSON.stringify(req.body.courseDays || [])
+    };
+    const created = await Course.create({ id, ...payload });
     res.status(201).json(created);
   } catch (err) {
     console.error(err);
@@ -109,7 +217,12 @@ app.put('/api/courses/:id', async (req, res) => {
   try {
     const c = await Course.findByPk(req.params.id);
     if (!c) return res.status(404).json({ error: 'not found' });
-    await c.update(req.body);
+    const payload = {
+      ...req.body,
+      instructorIds: JSON.stringify(req.body.instructorIds || []),
+      courseDays: JSON.stringify(req.body.courseDays || [])
+    };
+    await c.update(payload);
     res.json(c);
   } catch (err) {
     console.error(err);
@@ -188,12 +301,14 @@ app.get('/api/students', async (req, res) => {
 
 app.post('/api/students', async (req, res) => {
   try {
-    const payload = req.body;
+    const payload = { ...req.body, password: req.body.password || 'changeme123' };
     const id = genId('s');
+    console.log('Creating student with payload:', payload);
     const created = await Student.create({ id, ...payload });
+    console.log('Student created:', created.toJSON());
     res.status(201).json(created);
   } catch (err) {
-    console.error(err);
+    console.error('Error creating student:', err);
     res.status(500).json({ error: 'internal' });
   }
 });
@@ -202,10 +317,12 @@ app.put('/api/students/:id', async (req, res) => {
   try {
     const s = await Student.findByPk(req.params.id);
     if (!s) return res.status(404).json({ error: 'not found' });
+    console.log('Updating student:', req.params.id, 'with:', req.body);
     await s.update(req.body);
+    console.log('Student after update:', s.toJSON());
     res.json(s);
   } catch (err) {
-    console.error(err);
+    console.error('Error updating student:', err);
     res.status(500).json({ error: 'internal' });
   }
 });
@@ -236,7 +353,8 @@ app.get('/api/instructors', async (req, res) => {
 app.post('/api/instructors', async (req, res) => {
   try {
     const id = genId('inst');
-    const created = await Instructor.create({ id, ...req.body });
+    const payload = { ...req.body, password: req.body.password || 'changeme123' };
+    const created = await Instructor.create({ id, ...payload });
     res.status(201).json(created);
   } catch (err) {
     console.error(err);
@@ -282,7 +400,7 @@ app.post('/api/students/bulk', async (req, res) => {
           errors.push({ row: idx, message: 'name, email, rollNo are required' });
           continue;
         }
-        const payload = { id: s.id || genId('s'), name: s.name, email: s.email, rollNo: s.rollNo, parentsEmail: s.parentsEmail || null };
+        const payload = { id: s.id || genId('s'), name: s.name, email: s.email, rollNo: s.rollNo, parentsEmail: s.parentsEmail || null, password: s.password || 'changeme123' };
         const [record] = await Student.findOrCreate({ where: { id: payload.id }, defaults: payload, transaction: t });
         imported.push(record);
         if (s.batchId) {
@@ -356,7 +474,7 @@ app.post('/api/instructors/bulk', async (req, res) => {
       for (let idx = 0; idx < instructors.length; idx++) {
         const i = instructors[idx];
         if (!i.name || !i.email || !i.employeeId) { errors.push({ row: idx, message: 'name, email, employeeId are required' }); continue; }
-        const payload = { id: i.id || genId('inst'), name: i.name, email: i.email, employeeId: i.employeeId };
+        const payload = { id: i.id || genId('inst'), name: i.name, email: i.email, employeeId: i.employeeId, password: i.password || 'changeme123' };
         const [record] = await Instructor.findOrCreate({ where: { id: payload.id }, defaults: payload, transaction: t });
         imported.push(record);
       }
@@ -377,9 +495,21 @@ app.get('/api/admins', async (req, res) => {
 });
 app.post('/api/admins', async (req, res) => {
   try {
-    const payload = { id: req.body.id || genId('admin'), name: req.body.name, email: req.body.email, employeeId: req.body.employeeId || null, createdAt: new Date().toISOString().split('T')[0], status: req.body.status || 'active' };
+    const payload = { id: req.body.id || genId('admin'), name: req.body.name, email: req.body.email, employeeId: req.body.employeeId || null, createdAt: new Date().toISOString().split('T')[0], status: req.body.status || 'active', password: req.body.password || 'changeme123' };
     const created = await Admin.create(payload);
     res.status(201).json(created);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
+});
+app.put('/api/admins/:id', async (req, res) => {
+  try {
+    const a = await Admin.findByPk(req.params.id);
+    if (!a) return res.status(404).json({ error: 'not found' });
+    if (req.body.status) a.status = req.body.status;
+    if (req.body.name) a.name = req.body.name;
+    if (req.body.email) a.email = req.body.email;
+    if (req.body.employeeId) a.employeeId = req.body.employeeId;
+    await a.save();
+    res.json(a);
   } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
 });
 app.delete('/api/admins/:id', async (req, res) => {
@@ -474,6 +604,34 @@ app.get('/api/reports', async (req, res) => {
     const attendanceRate = totalAttendance > 0 ? ((totalPresent / totalAttendance) * 100).toFixed(1) : '0.0';
     res.json({ totalStudents, totalInstructors, totalCourses, totalAttendance, totalPresent, attendanceRate });
   } catch (err) { console.error(err); res.status(500).json({ error: 'internal' }); }
+});
+
+// --- System Settings (key/value) ---
+app.get('/api/system-settings', async (req, res) => {
+  try {
+    const rows = await SystemSetting.findAll();
+    const settings = {};
+    rows.forEach(r => { settings[r.key] = r.value; });
+    res.json(settings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.put('/api/system-settings', async (req, res) => {
+  const { settings } = req.body || {};
+  if (!settings || typeof settings !== 'object') return res.status(400).json({ error: 'settings object required' });
+  try {
+    const entries = Object.entries(settings);
+    for (const [key, value] of entries) {
+      await SystemSetting.upsert({ key, value: String(value) });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal' });
+  }
 });
 
 // Health check

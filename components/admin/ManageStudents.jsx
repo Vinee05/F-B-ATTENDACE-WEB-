@@ -12,12 +12,14 @@ export function ManageStudents({
 }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [showStudentPassword, setShowStudentPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     rollNo: '',
     batchId: '',
-    parentsEmail: ''
+    parentsEmail: '',
+    password: ''
   });
   const fileRef = useRef();
 
@@ -40,7 +42,8 @@ export function ManageStudents({
       email: '',
       rollNo: '',
       batchId: '',
-      parentsEmail: ''
+      parentsEmail: '',
+      password: ''
     });
     setEditingStudent(null);
     setShowAddModal(true);
@@ -48,11 +51,12 @@ export function ManageStudents({
 
   const handleEdit = (student) => {
     setFormData({
-      name: student.name,
-      email: student.email,
-      rollNo: student.rollNo,
-      batchId: student.batchId || '',
-      parentsEmail: student.parentsEmail || ''
+      name: student.name || '',
+      email: student.email || '',
+      rollNo: student.rollNo || '',
+      batchId: student.batchId ? String(student.batchId) : '',
+      parentsEmail: student.parentsEmail || '',
+      password: ''
     });
     setEditingStudent(student);
     setShowAddModal(true);
@@ -62,30 +66,49 @@ export function ManageStudents({
     e.preventDefault();
     (async () => {
       try {
+        const payload = { ...formData };
+        console.log('Payload before send:', payload);
+        
+        if (editingStudent && !payload.password) {
+          delete payload.password; // avoid clearing existing password
+        }
+        
         if (editingStudent) {
+          console.log('Updating student with ID:', editingStudent.id);
+          console.log('Payload:', payload);
           const res = await fetch(`/api/students/${editingStudent.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(payload)
           });
-          if (!res.ok) throw new Error((await res.json()).error || 'Update failed');
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Update failed');
+          }
+          const updated = await res.json();
+          console.log('Student updated:', updated);
         } else {
           const res = await fetch('/api/students', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(payload)
           });
-          if (!res.ok) throw new Error((await res.json()).error || 'Create failed');
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Create failed');
+          }
         }
 
         // Refresh students from API
         const studentsRes = await fetch('/api/students');
         if (!studentsRes.ok) throw new Error('Failed to reload students');
         const students = await studentsRes.json();
+        console.log('Reloaded students:', students);
         setAppState(prev => ({ ...prev, students }));
         setShowAddModal(false);
+        alert(`Student ${editingStudent ? 'updated' : 'created'} successfully!`);
       } catch (err) {
-        console.error(err);
+        console.error('Error:', err);
         alert('Failed to save student: ' + err.message);
       }
     })();
@@ -274,6 +297,26 @@ export function ManageStudents({
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 mb-2">Password {editingStudent ? '(leave blank to keep)' : ''}</label>
+                  <input
+                    type={showStudentPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Default: changeme123"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <label className="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={showStudentPassword}
+                      onChange={e => setShowStudentPassword(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 accent-indigo-600"
+                    />
+                    Show password
+                  </label>
                 </div>
 
                 <div>

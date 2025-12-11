@@ -138,6 +138,7 @@ export function ManageCourses({
         const courses = await coursesRes.json();
         setAppState(prev => ({ ...prev, courses }));
         setShowAddModal(false);
+        alert(`Course ${editingCourse ? 'updated' : 'created'} successfully!`);
       } catch (err) {
         console.error(err);
         alert('Failed to save course: ' + err.message);

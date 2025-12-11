@@ -30,10 +30,12 @@ export function ManageInstructors({
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState(null);
+  const [showInstructorPassword, setShowInstructorPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    employeeId: ''
+    employeeId: '',
+    password: ''
   });
   const fileRef = useRef();
 
@@ -54,7 +56,8 @@ export function ManageInstructors({
     setFormData({
       name: '',
       email: '',
-      employeeId: ''
+      employeeId: '',
+      password: ''
     });
     setEditingInstructor(null);
     setShowAddModal(true);
@@ -118,7 +121,8 @@ export function ManageInstructors({
     setFormData({
       name: instructor.name,
       email: instructor.email,
-      employeeId: instructor.employeeId
+      employeeId: instructor.employeeId,
+      password: ''
     });
     setEditingInstructor(instructor);
     setShowAddModal(true);
@@ -128,18 +132,22 @@ export function ManageInstructors({
     e.preventDefault();
     (async () => {
       try {
+        const payload = { ...formData };
+        if (editingInstructor && !payload.password) {
+          delete payload.password; // avoid blanking password when editing
+        }
         if (editingInstructor) {
           const res = await fetch(`/api/instructors/${editingInstructor.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(payload)
           });
           if (!res.ok) throw new Error(await getErrorMessage(res, 'Update failed'));
         } else {
           const res = await fetch('/api/instructors', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(payload)
           });
           if (!res.ok) throw new Error(await getErrorMessage(res, 'Create failed'));
         }
@@ -279,6 +287,26 @@ export function ManageInstructors({
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 mb-2">Password {editingInstructor ? '(leave blank to keep)' : ''}</label>
+                  <input
+                    type={showInstructorPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Default: changeme123"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <label className="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={showInstructorPassword}
+                      onChange={e => setShowInstructorPassword(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 accent-indigo-600"
+                    />
+                    Show password
+                  </label>
                 </div>
 
                 <div className="flex space-x-3 pt-4">

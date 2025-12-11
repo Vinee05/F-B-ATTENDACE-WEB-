@@ -28,7 +28,8 @@ async function main() {
       id: `inst${100 + idx}`,
       employeeId: `EMP${100 + idx}`,
       name: `Instructor ${idx}`,
-      email: `instructor${idx}@example.com`
+      email: `instructor${idx}@example.com`,
+      password: `instructor${idx}123`
     };
   });
 
@@ -56,12 +57,15 @@ async function main() {
 
   const students = Array.from({ length: 10 }).map((_, i) => {
     const idx = i + 1;
+    const batch = batches[i % batches.length];
     return {
       id: `s${100 + idx}`,
       name: `Student ${idx}`,
       email: `student${idx}@example.com`,
       rollNo: `STU${100 + idx}`,
-      parentsEmail: `parent${idx}@example.com`
+      batchId: batch.id,
+      parentsEmail: `parent${idx}@example.com`,
+      password: `student${idx}123`
     };
   });
 
@@ -105,6 +109,7 @@ async function main() {
       email: `admin${idx}@example.com`,
       employeeId: `ADM${100 + idx}`,
       status: 'active',
+      password: `admin${idx}123`,
       createdAt: '2025-01-01'
     };
   });

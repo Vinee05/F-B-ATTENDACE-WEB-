@@ -30,12 +30,33 @@ export function StudentDashboard({
   }];
 
   const student = appState.students.find(s => s.id === user.id);
-  const batch = student ? appState.batches.find(b => b.id === student.batchId) : null;
-  const course = batch ? appState.courses.find(c => c.id === batch.courseId) : null;
   
-  const studentCourses = appState.courses.filter(c => {
-    const courseBatches = appState.batches.filter(b => b.courseId === c.id);
-    return courseBatches.some(b => b.id === student?.batchId);
+  // Get courses from student's batch
+  const studentCourses = student?.batchId 
+    ? appState.courses.filter(c => {
+        const batch = appState.batches.find(b => b.id === student.batchId);
+        return batch && batch.courseId === c.id;
+      })
+    : [];
+
+  // Get batch and course for display
+  const batch = student?.batchId ? appState.batches.find(b => b.id === student.batchId) : null;
+  const course = batch ? appState.courses.find(c => c.id === batch.courseId) : null;
+
+  // Default the filter to the student's enrolled course so it shows up immediately
+  React.useEffect(() => {
+    if (!selectedCourse && studentCourses.length > 0) {
+      setSelectedCourse(studentCourses[0].id);
+    }
+  }, [studentCourses, selectedCourse]);
+
+  console.log('StudentDashboard Debug:', {
+    userId: user.id,
+    student: student,
+    batchId: student?.batchId,
+    batch: batch,
+    course: course,
+    studentCourses: studentCourses
   });
   
   const filteredAttendance = appState.attendance.filter(a => a.studentId === user.id).filter(a => {
@@ -87,6 +108,24 @@ export function StudentDashboard({
       React.createElement("div", null, 
         React.createElement("h1", { className: "text-3xl font-bold text-gray-900" }, "Student Dashboard"), 
         React.createElement("p", { className: "text-gray-600 mt-1" }, "Welcome back, ", user.name)
+      ),
+
+      // Enrollment summary
+      React.createElement("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200" },
+        React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4" },
+          React.createElement("div", { className: "p-4 border rounded-lg bg-gray-50" },
+            React.createElement("p", { className: "text-xs uppercase text-gray-500 font-semibold" }, "Course"),
+            React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, course?.name || course?.code || 'Not Enrolled')
+          ),
+          React.createElement("div", { className: "p-4 border rounded-lg bg-gray-50" },
+            React.createElement("p", { className: "text-xs uppercase text-gray-500 font-semibold" }, "Batch"),
+            React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, batch?.name || batch?.id || 'Not Assigned')
+          ),
+          React.createElement("div", { className: "p-4 border rounded-lg bg-gray-50" },
+            React.createElement("p", { className: "text-xs uppercase text-gray-500 font-semibold" }, "Roll Number"),
+            React.createElement("p", { className: "text-gray-900 font-bold mt-1" }, student?.rollNo || 'N/A')
+          )
+        )
       ),
       
       // Course Filter
@@ -214,11 +253,11 @@ export function StudentDashboard({
           ), 
           React.createElement("div", null, 
             React.createElement("p", { className: "text-gray-500 text-sm font-semibold uppercase tracking-wide" }, "Course"), 
-            React.createElement("p", { className: "text-gray-900 font-bold text-lg mt-2" }, course?.name || 'Not Enrolled')
+            React.createElement("p", { className: "text-gray-900 font-bold text-lg mt-2" }, course?.name || course?.id || 'Not Enrolled')
           ), 
           React.createElement("div", null, 
             React.createElement("p", { className: "text-gray-500 text-sm font-semibold uppercase tracking-wide" }, "Batch"), 
-            React.createElement("p", { className: "text-gray-900 font-bold text-lg mt-2" }, batch?.name || 'Not Assigned')
+            React.createElement("p", { className: "text-gray-900 font-bold text-lg mt-2" }, batch?.name || batch?.id || 'Not Assigned')
           )
         )
       ),

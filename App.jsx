@@ -35,30 +35,35 @@ export default function App() {
     admins: []
   });
 
-  useEffect(() => {
-    async function loadAll() {
-      try {
-        const [coursesRes, batchesRes, studentsRes, instructorsRes, attendanceRes, leavesRes, notesRes, adminsRes] = await Promise.all([
-          fetch('/api/courses'),
-          fetch('/api/batches'),
-          fetch('/api/students'),
-          fetch('/api/instructors'),
-          fetch('/api/attendance'),
-          fetch('/api/leaverequests'),
-          fetch('/api/notifications'),
-          fetch('/api/admins')
-        ]);
+  const loadAll = async () => {
+    try {
+      const [coursesRes, batchesRes, studentsRes, instructorsRes, attendanceRes, leavesRes, notesRes, adminsRes] = await Promise.all([
+        fetch('/api/courses'),
+        fetch('/api/batches'),
+        fetch('/api/students'),
+        fetch('/api/instructors'),
+        fetch('/api/attendance'),
+        fetch('/api/leaverequests'),
+        fetch('/api/notifications'),
+        fetch('/api/admins')
+      ]);
 
-        const [courses, batches, students, instructors, attendance, leaveRequests, notifications, admins] = await Promise.all([
-          coursesRes.json(), batchesRes.json(), studentsRes.json(), instructorsRes.json(), attendanceRes.json(), leavesRes.json(), notesRes.json(), adminsRes.json()
-        ]);
+      const [courses, batches, students, instructors, attendance, leaveRequests, notifications, admins] = await Promise.all([
+        coursesRes.json(), batchesRes.json(), studentsRes.json(), instructorsRes.json(), attendanceRes.json(), leavesRes.json(), notesRes.json(), adminsRes.json()
+      ]);
 
-        setAppState({ courses, batches, students, instructors, attendance, leaveRequests, notifications, admins });
-      } catch (err) {
-        console.error('Failed to load data from API', err);
-      }
+      setAppState({ courses, batches, students, instructors, attendance, leaveRequests, notifications, admins });
+    } catch (err) {
+      console.error('Failed to load data from API', err);
     }
+  };
+
+  useEffect(() => {
     loadAll();
+    
+    // Refresh data every 30 seconds
+    const interval = setInterval(loadAll, 30000);
+    return () => clearInterval(interval);
   }, []);
   const handleLogin = async (email, password) => {
     try {
@@ -72,38 +77,17 @@ export default function App() {
         // Expecting { id, name, email, role }
         setUser({ id: data.id || '', name: data.name || data.email, email: data.email, role: data.role || 'student' });
         setCurrentPage('dashboard');
+        await loadAll();
+        return;
+      } else {
+        const error = await res.json();
+        alert(`Login failed: ${error.error || 'Invalid credentials'}`);
         return;
       }
-      console.warn('Login request failed, falling back to local mock auth');
     } catch (err) {
-      console.error('Login API error, falling back to mock', err);
+      console.error('Login API error', err);
+      alert('Login failed. Please check your connection and try again.');
     }
-
-    // Fallback: Mock authentication - detect role from email
-    let role = 'student';
-    let name = 'User';
-    let id = '';
-    if (email.includes('admin')) {
-      role = 'admin';
-      name = 'Admin User';
-      id = 'admin1';
-    } else if (email.includes('sarah') || email.includes('michael') || email.includes('emily')) {
-      role = 'instructor';
-      const instructor = appState.instructors.find(i => i.email === email);
-      if (instructor) {
-        name = instructor.name;
-        id = instructor.id;
-      }
-    } else {
-      role = 'student';
-      const student = appState.students.find(s => s.email === email);
-      if (student) {
-        name = student.name;
-        id = student.id;
-      }
-    }
-    setUser({ id, name, email, role });
-    setCurrentPage('dashboard');
   };
   const handleLogout = () => {
     setUser(null);

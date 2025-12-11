@@ -83,6 +83,7 @@ export function ManageBatches({
         const batches = await batchesRes.json();
         setAppState(prev => ({ ...prev, batches }));
         setShowAddModal(false);
+        alert(`Batch ${editingBatch ? 'updated' : 'created'} successfully!`);
       } catch (err) {
         console.error(err);
         alert('Failed to save batch: ' + err.message);

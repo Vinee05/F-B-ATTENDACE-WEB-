@@ -14,7 +14,9 @@ export function InstructorDashboard({
       size: 20
     })
   }];
-  const myCourses = appState.courses.filter(c => c.instructorId === user.id);
+  const myCourses = appState.courses.filter(c => 
+    c.instructorIds && Array.isArray(c.instructorIds) && c.instructorIds.includes(user.id)
+  );
   return /*#__PURE__*/React.createElement(Layout, {
     user: user,
     currentPage: "dashboard",

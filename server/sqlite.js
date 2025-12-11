@@ -16,21 +16,26 @@ const Student = sequelize.define('Student', {
   name: DataTypes.STRING,
   email: DataTypes.STRING,
   rollNo: DataTypes.STRING,
-  parentsEmail: DataTypes.STRING
+  batchId: DataTypes.STRING,
+  parentsEmail: DataTypes.STRING,
+  password: DataTypes.STRING
 }, { timestamps: false });
 
 const Course = sequelize.define('Course', {
   id: { type: DataTypes.STRING, primaryKey: true },
   code: DataTypes.STRING,
   name: DataTypes.STRING,
-  description: DataTypes.TEXT
+  description: DataTypes.TEXT,
+  instructorIds: DataTypes.TEXT, // JSON string array
+  courseDays: DataTypes.TEXT // JSON string array of ISO dates
 }, { timestamps: false });
 
 const Instructor = sequelize.define('Instructor', {
   id: { type: DataTypes.STRING, primaryKey: true },
   employeeId: DataTypes.STRING,
   name: DataTypes.STRING,
-  email: DataTypes.STRING
+  email: DataTypes.STRING,
+  password: DataTypes.STRING
 }, { timestamps: false });
 
 const Batch = sequelize.define('Batch', {
@@ -72,6 +77,7 @@ const Admin = sequelize.define('Admin', {
   email: DataTypes.STRING,
   employeeId: DataTypes.STRING,
   status: DataTypes.STRING,
+  password: DataTypes.STRING,
   createdAt: DataTypes.STRING
 }, { timestamps: false });
 
@@ -97,9 +103,15 @@ const Notification = sequelize.define('Notification', {
   createdBy: DataTypes.STRING
 }, { timestamps: false });
 
+// Key-value system settings
+const SystemSetting = sequelize.define('SystemSetting', {
+  key: { type: DataTypes.STRING, primaryKey: true },
+  value: DataTypes.TEXT
+}, { timestamps: false });
+
 async function init() {
   await sequelize.authenticate();
-  await sequelize.sync();
+  await sequelize.sync({ alter: true });
 }
 
 module.exports = {
@@ -115,4 +127,5 @@ module.exports = {
   , Admin
   , LeaveRequest
   , Notification
+  , SystemSetting
 };
